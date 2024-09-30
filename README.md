@@ -10,3 +10,6 @@ chmod +x ./*
 
 ./NebtyRecon.sh
 
+
+
+#You can also use RECON-Cheat-Sheat.txt
