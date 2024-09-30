@@ -39,7 +39,7 @@ SEARCH_PATTERN="$3"
 # Экранирование точки в шаблоне поиска
 SEARCH_PATTERN="${SEARCH_PATTERN//./\\.}"
 
-BASE_DIR="/home/kali/Desktop/Osint_bugbounty"
+BASE_DIR="./"
 TARGET_DIR="${BASE_DIR}/${TARGET}"
 OUTPUT_ALL="${TARGET_DIR}/${TARGET}_all_subdomains.txt"
 OUTPUT_AVAILABLE="${TARGET_DIR}/${TARGET}_available_subdomains.txt"
