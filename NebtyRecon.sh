@@ -223,7 +223,7 @@ find_secrets() {
     echo "Поиск конфиденциальных данных в JavaScript файлах..."
 
     # Определение директорий и файлов
-    BASE_DIR=~/Desktop/Osint_bugbounty/wayback
+    BASE_DIR=./wayback
     DOMAIN_FILE="${BASE_DIR}/domain_out_httpx.txt"
     SORTURLS_FILE="${BASE_DIR}/sorturls.txt"
     SECRET_FINDER_PATH=~/Downloads/secretfinder/SecretFinder.py
