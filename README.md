@@ -1,5 +1,5 @@
 #Installing Kali Linux
-
+--------------------------------------------------
 git clone https://github.com/Nebtyy/NebtyRecon.git
 
 cd NebtyRecon
@@ -10,6 +10,5 @@ chmod +x ./*
 
 ./NebtyRecon.sh
 
-
-
+--------------------------------------------------
 #You can also use RECON-Cheat-Sheat.txt
