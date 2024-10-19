@@ -1,59 +1,41 @@
-#Installing Kali Linux
---------------------------------------------------
-`git clone https://github.com/Nebtyy/NebtyRecon.git`
+This script is a comprehensive recon tool designed for penetration testing and vulnerability assessment, particularly focused on web application security. It automates the process of discovering subdomains, analyzing them for vulnerabilities, collecting URLs, and searching for sensitive information in JavaScript files. Here's an enhanced explanation of what it does, the vulnerabilities it can find, and its practical uses:
 
-`cd NebtyRecon`
-
-`chmod +x ./*`
-
-`./setup_and_run.sh`
-
-`./NebtyRecon.sh <target> <mode> <pattern>`
-
---------------------------------------------------
-#Mods:
---------------------------------------------------
 ### 1. **Mode "search"**
-- **What it does:** 
-  - Initiates a subdomain search for the specified domain using several tools (subfinder, sublist3r, crt.sh, amass, and assetfinder).
-  - Combines the results from all tools and removes duplicates, saving them to a file.
+- **What it does:**
+  - Initiates subdomain enumeration for a given target domain using various tools like **subfinder**, **sublist3r**, **crt.sh**, **amass**, and **assetfinder**.
+  - **Purpose:** Helps find hidden or forgotten subdomains that may have security vulnerabilities, including subdomains not covered by security patches or potentially misconfigured.
+  - **Vulnerabilities it can uncover:**
+    - Exposed subdomains that lead to outdated web applications or test environments.
+    - Forgotten subdomains that still point to third-party services or unmaintained servers.
 
 ### 2. **Mode "find"**
-- **What it does:** 
-  - Checks the availability of the subdomains found in the previous step.
-  - Runs the **subzy** tool for further processing and analysis of the subdomains.
+- **What it does:**
+  - Checks the availability of the discovered subdomains, validating whether they are accessible and live.
+  - Uses **subzy** to detect subdomains vulnerable to **subdomain takeover** attacks.
+  - **Vulnerabilities it can uncover:**
+    - **Subdomain Takeover:** When a subdomain points to a service that no longer exists, an attacker can claim it and host malicious content.
+    - **Unprotected subdomains** that may still be live but misconfigured or vulnerable.
 
 ### 3. **Mode "process"**
-- **What it does:** 
-  - Finds and collects URLs from the subdomains using the waybackurls and gau tools.
-  - Checks the availability of the collected URLs using httpx.
-  - Removes duplicate parameters from URLs and saves unique URLs.
-  - Searches for sensitive data in JavaScript files extracted from the collected URLs using SecretFinder.
+- **What it does:**
+  - Collects URLs from the discovered subdomains using tools like **waybackurls**, **gau**, and **katana**.
+  - Filters and checks these URLs for availability using **httpx**.
+  - Removes duplicate parameters and extracts unique URL paths and parameters, making it easier to identify vulnerable endpoints.
+  - Searches JavaScript files for sensitive information such as **API keys**, **tokens**, or **credentials** using **SecretFinder**.
+  - **Vulnerabilities it can uncover:**
+    - **Sensitive Data Exposure:** Finds sensitive data (like API keys) within JavaScript files that attackers could use to exploit the system.
+    - **Broken Access Control:** Vulnerable endpoints and parameters could indicate unauthorized access points or privilege escalation possibilities.
+    - **Exposed endpoints:** URLs that may lead to outdated or insecure services.
 
 ### 4. **Mode "all"**
-- **What it does:** 
-  - Executes all actions from the previous modes sequentially:
-    - Searches for subdomains.
-    - Combines results.
-    - Checks the availability of subdomains.
-    - Runs subzy for subdomain processing.
-    - Searches for and processes URLs.
-    - Looks for secrets in JavaScript files.
+- **What it does:**
+  - Runs all the above operations sequentially, providing full coverage for subdomain discovery, availability checking, URL enumeration, and secret finding.
+  - **Purpose:** This mode is designed for full-scale recon, ideal for comprehensive penetration testing or bug bounty hunting.
 
-### Overall Purpose of the Script
-The script is designed for actively searching and analyzing subdomains, collecting URLs, and finding sensitive information, which can be useful for testing the security of web applications.
-
-#Example of use:
---------------------------------------------------
-If, for example, you test www.google.com:
-`./NebtyRecon.sh www.google.com all www.google.com`
-
-If, for example, you test *.google.com:
-`./NebtyRecon.sh www.google.com all .google.com`
-
-
-
-
-
-
-#You can also use RECON-Cheat-Sheat.txt
+### **Overall Vulnerabilities the Script Helps Detect:**
+- **Subdomain Takeovers:** Finding subdomains that can be hijacked by third-party services.
+- **Sensitive Data Leakage:** Locating secrets, credentials, or API keys in exposed JavaScript files.
+- **Exposed URLs and Endpoints:** Identifying URLs that can reveal hidden functionality or lead to injection attacks (e.g., SQLi, XSS).
+- **Broken Access Control:** Discovering misconfigured URL parameters that could allow unauthorized actions.
+  
+This script is particularly useful for security professionals and bug bounty hunters, as it automates the reconnaissance phase of web application testing.
