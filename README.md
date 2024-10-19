@@ -1,6 +1,5 @@
 # NebtyRecon
 
-
 ### **Installation:**
 To install **NebtyRecon** on Kali Linux, follow these steps:
 
