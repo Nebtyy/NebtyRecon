@@ -166,41 +166,41 @@ find_urls() {
     FILT_PATH="${TARGET_DIR}/possible_path.txt"
     AVAILABLE_URLS="${TARGET_DIR}/Available_urls.txt"
 
-    # echo "Очистка всех выходных файлов..."
-    # > "${DOMAIN_OUT}"
+    echo "Очистка всех выходных файлов..."
+    > "${DOMAIN_OUT}"
     > "${HTTPX_OUT}"
-    # > "${GAU_OUT}"
+    > "${GAU_OUT}"
     > "${UNIQUE_URLS}"
-    # > "${KATANA_OUT}"
+    > "${KATANA_OUT}"
     > "${ALL_PARAMETER}"
     > "${FILT_PARAM}"
     > "${FILT_PARAM_WV}"
     > "${FILT_PATH}"
     > "${AVAILABLE_URLS}"
 
-    # echo "Проверка содержимого DOMAIN_FILE: ${DOMAIN_FILE}"
-    # cat "${DOMAIN_FILE}"
+    echo "Проверка содержимого DOMAIN_FILE: ${DOMAIN_FILE}"
+    cat "${DOMAIN_FILE}"
 
-    # echo "Получение возможных каталогов и конечных точек с помощью waybackurls..."
-    # if command -v waybackurls &> /dev/null; then
-    #     cat "${DOMAIN_FILE}" | waybackurls | tee -a "${DOMAIN_OUT}"
-    # else
-    #     echo "Ошибка: Команда wayb${FILT_PARAM}ackurls не найдена."
-    # fi
+    echo "Получение возможных каталогов и конечных точек с помощью waybackurls..."
+    if command -v waybackurls &> /dev/null; then
+        cat "${DOMAIN_FILE}" | waybackurls | tee -a "${DOMAIN_OUT}"
+    else
+        echo "Ошибка: Команда wayb${FILT_PARAM}ackurls не найдена."
+    fi
 
-    # echo "Получение возможных каталогов и конечных точек с помощью gau..."
-    # if command -v gau &> /dev/null; then
-    #     cat "${DOMAIN_FILE}" | gau | tee -a "${GAU_OUT}"
-    # else
-    #     echo "Ошибка: Команда gau не найдена."
-    # fi
+    echo "Получение возможных каталогов и конечных точек с помощью gau..."
+    if command -v gau &> /dev/null; then
+        cat "${DOMAIN_FILE}" | gau | tee -a "${GAU_OUT}"
+    else
+        echo "Ошибка: Команда gau не найдена."
+    fi
     
-    # echo "Запуск katana для обработки URL..."
-    # if command -v katana &> /dev/null; then
-    #     cat "${DOMAIN_OUT}" | katana | hakrawler -d 3 | grep "${SEARCH_PATTERN}" | tee -a "${KATANA_OUT}"
-    # else
-    #     echo "Ошибка: Команда katana не найдена."
-    # fi
+    echo "Запуск katana для обработки URL..."
+    if command -v katana &> /dev/null; then
+        cat "${DOMAIN_OUT}" | katana | hakrawler -d 3 | grep "${SEARCH_PATTERN}" | tee -a "${KATANA_OUT}"
+    else
+        echo "Ошибка: Команда katana не найдена."
+    fi
     
     echo "Проверка доступности URL..."
     if command -v httpx &> /dev/null; then
@@ -289,10 +289,10 @@ case "$MODE" in
         ;;
 
     "all")
-        # search_subdomains
-        # combine_results
-        # check_availability
-        # run_subzy
+        search_subdomains
+        combine_results
+        check_availability
+        run_subzy
         find_urls
         find_secrets
         ;;
