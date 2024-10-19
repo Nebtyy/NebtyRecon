@@ -1,5 +1,6 @@
 #!/bin/bash
 
+
 echo "███╗   ██╗███████╗██████╗ ████████╗██╗   ██╗██████╗ ███████╗ ██████╗ ██████╗ ███╗   ██╗
 ████╗  ██║██╔════╝██╔══██╗╚══██╔══╝╚██╗ ██╔╝██╔══██╗██╔════╝██╔════╝██╔═══██╗████╗  ██║
 ██╔██╗ ██║█████╗  ██████╔╝   ██║    ╚████╔╝ ██████╔╝█████╗  ██║     ██║   ██║██╔██╗ ██║
@@ -7,7 +8,6 @@ echo "███╗   ██╗███████╗██████╗ █�
 ██║ ╚████║███████╗██████╔╝   ██║      ██║   ██║  ██║███████╗╚██████╗╚██████╔╝██║ ╚████║
 ╚═╝  ╚═══╝╚══════╝╚═════╝    ╚═╝      ╚═╝   ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝"
 echo "                                                                        Made by Nebty"
-
 # Проверка на наличие двух или трёх аргументов
 if [ $# -lt 2 ] || [ $# -gt 3 ]; then
     echo "Usage: $0 <target_domain> <mode> [search_pattern]"
@@ -31,7 +31,13 @@ SORTURLS_FILE="${BASE_DIR}/wayback/sorturls.txt"
 SECRET_FINDER_PATH="/home/kali/Downloads/secretfinder/SecretFinder.py"
 SUBZY_OUTPUT="${TARGET_DIR}/subzy_output.txt"
 TEMP_SECRET_FILE="${TARGET_DIR}/secretfind_output.txt"
-KATANA_OUT="${TARGET_DIR}/katanaUrls.txt"  # Файл для вывода katana
+ALL_PARAMETER="${TARGET_DIR}/all_url_with_filtered_parametr"  #записывать после uro последнего файла
+FILT_PARAM="${TARGET_DIR}/possible_parameters.txt"
+FILT_PATH="${TARGET_DIR}/possible_path.txt"
+AVAILABLE_URLS="${TARGET_DIR}/Available_urls.txt"
+FILT_PARAM_WV="${TARGET_DIR}/possible_parameters_without_value.txt"
+
+KATANA_OUT="${BASE_DIR}/wayback/katanaUrls.txt"  # Файл для вывода katana
 
 # Создание директории для вывода, если она не существует
 mkdir -p "${TARGET_DIR}"
@@ -40,18 +46,24 @@ mkdir -p "${BASE_DIR}/wayback"
 # Создание всех необходимых файлов перед их очисткой
 for file in "${BASE_DIR}/wayback/domain_out.txt" \
             "${BASE_DIR}/wayback/domain_out_httpx.txt" \
-            "${BASE_DIR}/wayback/domain_out_httpx_uro.txt" \
+            "${BASE_DIR}/wayback/domain_out_uro.txt" \
             "${BASE_DIR}/wayback/domain_out_gau.txt" \
             "${BASE_DIR}/wayback/unique_urls.txt" \
             "${TEMP_SECRET_FILE}" \
             "${SORTURLS_FILE}" \
             "${SUBZY_OUTPUT}" \
+            "${ALL_PARAMETER}" \
+            "${FILT_PARAM}" \
+            "${FILT_PATH}" \
+            "${FILT_PARAM_WV}" \
+            "${AVAILABLE_URLS}" \
             "${KATANA_OUT}"; do
     touch "$file"
 done
 
 # Функция для проверки доступности домена
 check_domain() {
+    	
     echo "Проверка доступности домена ${TARGET}..."
     HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}\n" "${TARGET}")
 
@@ -146,64 +158,86 @@ run_subzy() {
 find_urls() {
     DOMAIN_OUT="${BASE_DIR}/wayback/domain_out.txt"
     HTTPX_OUT="${BASE_DIR}/wayback/domain_out_httpx.txt"
-    URO_OUT="${BASE_DIR}/wayback/domain_out_httpx_uro.txt"
     GAU_OUT="${BASE_DIR}/wayback/domain_out_gau.txt"
     UNIQUE_URLS="${BASE_DIR}/wayback/unique_urls.txt"
+    KATANA_OUT="${BASE_DIR}/wayback/katanaUrls.txt"  # Файл для вывода katana
+    ALL_PARAMETER="${TARGET_DIR}/all_url_with_filtered_parametr"  #записывать после uro последнего файла
+    FILT_PARAM="${TARGET_DIR}/possible_parameters.txt"
+    FILT_PATH="${TARGET_DIR}/possible_path.txt"
+    AVAILABLE_URLS="${TARGET_DIR}/Available_urls.txt"
 
-    echo "Очистка всех выходных файлов..."
-    > "${DOMAIN_OUT}"
+    # echo "Очистка всех выходных файлов..."
+    # > "${DOMAIN_OUT}"
     > "${HTTPX_OUT}"
-    > "${URO_OUT}"
-    > "${GAU_OUT}"
+    # > "${GAU_OUT}"
     > "${UNIQUE_URLS}"
+    # > "${KATANA_OUT}"
+    > "${ALL_PARAMETER}"
+    > "${FILT_PARAM}"
+    > "${FILT_PARAM_WV}"
+    > "${FILT_PATH}"
+    > "${AVAILABLE_URLS}"
 
-    echo "Проверка содержимого DOMAIN_FILE: ${DOMAIN_FILE}"
-    cat "${DOMAIN_FILE}"
+    # echo "Проверка содержимого DOMAIN_FILE: ${DOMAIN_FILE}"
+    # cat "${DOMAIN_FILE}"
 
-    echo "Получение возможных каталогов и конечных точек с помощью waybackurls..."
-    if command -v waybackurls &> /dev/null; then
-        cat "${DOMAIN_FILE}" | waybackurls | tee -a "${DOMAIN_OUT}"
-    else
-        echo "Ошибка: Команда waybackurls не найдена."
-    fi
+    # echo "Получение возможных каталогов и конечных точек с помощью waybackurls..."
+    # if command -v waybackurls &> /dev/null; then
+    #     cat "${DOMAIN_FILE}" | waybackurls | tee -a "${DOMAIN_OUT}"
+    # else
+    #     echo "Ошибка: Команда wayb${FILT_PARAM}ackurls не найдена."
+    # fi
 
-    echo "Получение возможных каталогов и конечных точек с помощью gau..."
-    if command -v gau &> /dev/null; then
-        cat "${DOMAIN_FILE}" | gau | tee -a "${GAU_OUT}"
-    else
-        echo "Ошибка: Команда gau не найдена."
-    fi
-
+    # echo "Получение возможных каталогов и конечных точек с помощью gau..."
+    # if command -v gau &> /dev/null; then
+    #     cat "${DOMAIN_FILE}" | gau | tee -a "${GAU_OUT}"
+    # else
+    #     echo "Ошибка: Команда gau не найдена."
+    # fi
+    
+    # echo "Запуск katana для обработки URL..."
+    # if command -v katana &> /dev/null; then
+    #     cat "${DOMAIN_OUT}" | katana | hakrawler -d 3 | grep "${SEARCH_PATTERN}" | tee -a "${KATANA_OUT}"
+    # else
+    #     echo "Ошибка: Команда katana не найдена."
+    # fi
+    
     echo "Проверка доступности URL..."
     if command -v httpx &> /dev/null; then
-        cat "${DOMAIN_OUT}" "${GAU_OUT}" | httpx | tee -a "${HTTPX_OUT}"
+        cat "${DOMAIN_OUT}" "${GAU_OUT}" "${KATANA_OUT}" | uro | httpx | tee -a "${HTTPX_OUT}"
     else
         echo "Ошибка: Команда httpx не найдена."
     fi
+    
+    cat "${HTTPX_OUT}" | grep "${SEARCH_PATTERN}" | tee "${AVAILABLE_URLS}"
 
+
+
+    echo "Сбор всех уникальных URL, включая katana..."
+    cat "${DOMAIN_OUT}" "${GAU_OUT}" "${HTTPX_OUT}" "${KATANA_OUT}" | sort -u > "${UNIQUE_URLS}"
+
+    echo "Поиск и запись URL в ${UNIQUE_URLS} завершен."
+    
     echo "Удаление дублирующихся параметров из URL..."
     if command -v uro &> /dev/null; then
-        cat "${HTTPX_OUT}" | uro | tee -a "${URO_OUT}"
+        cat "${UNIQUE_URLS}" | uro | tee -a "${ALL_PARAMETER}"
     else
         echo "Ошибка: Команда uro не найдена."
     fi
     
-    echo "Запуск katana для обработки URL..."
-    if command -v katana &> /dev/null; then
-        cat "${DOMAIN_OUT}" | katana | hakrawler -d 3 | grep "${SEARCH_PATTERN}" | tee -a "${KATANA_OUT}"
-    else
-        echo "Ошибка: Команда katana не найдена."
-    fi
+    echo "Сбор всех уникальных path and parameters"
+    cat "${UNIQUE_URLS}" | sed -E 's#https?://[^/]+(/[^?]*).*#\1#' | grep -v "http" | sort -u | tee "${FILT_PATH}"
+    cat "${UNIQUE_URLS}" | sed -E 's#.*\?(.*)#\1#' | tr '&' '\n' | grep -v "http" | sort -t'=' -k1,1 -u | tee "${FILT_PARAM}"
+    cat "${UNIQUE_URLS}" | sed -E 's#.*\?(.*)#\1#' | tr '&' '\n' | grep -v "http" | awk -F '=' '{print $1}' | sort -u | tee "${FILT_PARAM_WV}"
 
-    echo "Сбор всех уникальных URL, включая katana..."
-    cat "${DOMAIN_OUT}" "${GAU_OUT}" "${HTTPX_OUT}" "${URO_OUT}" "${KATANA_OUT}" | sort -u > "${UNIQUE_URLS}"
-
-    echo "Поиск и запись URL в ${UNIQUE_URLS} завершен."
 }
 
 # Функция для поиска секретов в JavaScript файлах
 find_secrets() {
     echo "Поиск конфиденциальных данных в JavaScript файлах..."
+    
+    echo "Очистка всех выходных файлов..."
+    > "${TEMP_SECRET_FILE}"
 
     # Определение директорий и файлов
     BASE_DIR=./wayback
@@ -255,10 +289,10 @@ case "$MODE" in
         ;;
 
     "all")
-        search_subdomains
-        combine_results
-        check_availability
-        run_subzy
+        # search_subdomains
+        # combine_results
+        # check_availability
+        # run_subzy
         find_urls
         find_secrets
         ;;
