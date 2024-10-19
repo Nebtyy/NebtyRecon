@@ -1,4 +1,8 @@
+# NebtyRecon
+
 This script is a comprehensive recon tool designed for penetration testing and vulnerability assessment, particularly focused on web application security. It automates the process of discovering subdomains, analyzing them for vulnerabilities, collecting URLs, and searching for sensitive information in JavaScript files. Here's an enhanced explanation of what it does, the vulnerabilities it can find, and its practical uses:
+
+---
 
 ### 1. **Mode "search"**
 - **What it does:**
@@ -37,5 +41,30 @@ This script is a comprehensive recon tool designed for penetration testing and v
 - **Sensitive Data Leakage:** Locating secrets, credentials, or API keys in exposed JavaScript files.
 - **Exposed URLs and Endpoints:** Identifying URLs that can reveal hidden functionality or lead to injection attacks (e.g., SQLi, XSS).
 - **Broken Access Control:** Discovering misconfigured URL parameters that could allow unauthorized actions.
+
+---
+
+### **Example Usage:**
+
+1. **To test a specific domain, e.g., www.google.com:**
+   ```bash
+   ./NebtyRecon.sh www.google.com all www.google.com
+   ```
+
+   This example runs the script for the domain `www.google.com` in the `all` mode, which:
+   - Searches for subdomains.
+   - Checks their availability.
+   - Collects URLs.
+   - Searches for secrets in JavaScript files.
+
+2. **To test all subdomains (*.google.com):**
+   ```bash
+   ./NebtyRecon.sh www.google.com all .google.com
+   ```
+
+   This example looks for all subdomains of `google.com`, checking them for vulnerabilities, analyzing URLs, and scanning JavaScript files for sensitive information.
+---
+
+The script is ideal for multi-step security assessments of web applications, starting with subdomain discovery and ending with identifying vulnerabilities in URLs and sensitive data exposure in JavaScript files.
   
 This script is particularly useful for security professionals and bug bounty hunters, as it automates the reconnaissance phase of web application testing.
