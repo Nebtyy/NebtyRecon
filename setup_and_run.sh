@@ -3,20 +3,21 @@
 # Updating the system and installing the necessary utilities
 echo "Updating the system and installing the necessary utilities..."
 sudo apt-get update
-sudo apt-get install -y curl jq git python3 python3-pip
+sudo apt-get install -y curl jq git python3 python3-pip wget linkchecker
 
 # Install Go if it is not installed
 if ! command -v go &> /dev/null; then
-    echo "Install Go..."
+    echo "Installing Go..."
     wget https://dl.google.com/go/go1.20.2.linux-amd64.tar.gz
     sudo tar -C /usr/local -xzf go1.20.2.linux-amd64.tar.gz
     export PATH=$PATH:/usr/local/go/bin
+    echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.profile
     source ~/.profile
 fi
 
 # Installing Go utilities
 echo "Installing Go utilities..."
-go install github.com/projectdiscovery/subfinder/cmd/subfinder@latest
+go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
 go install github.com/tomnomnom/assetfinder@latest
 go install -v github.com/OWASP/Amass/v3/...@latest
 go install github.com/lc/subzy@latest
@@ -32,5 +33,9 @@ pip install -r requirements.txt
 echo "Installing SecretFinder..."
 git clone https://github.com/m4ll0k/SecretFinder.git ~/Downloads/secretfinder
 pip install -r ~/Downloads/secretfinder/requirements.txt
+
+# Setting up linkchecker
+echo "Installing linkchecker..."
+sudo apt-get install -y linkchecker
 
 echo "All dependencies installed successfully!"
