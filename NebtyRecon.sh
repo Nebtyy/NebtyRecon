@@ -141,6 +141,20 @@ check_availability() {
             echo "$subdomain"
         fi
     ' >> "${OUTPUT_AVAILABLE}"
+    
+    # Запуск linkchecker для каждого поддомена из ${OUTPUT_AVAILABLE}
+    echo "Запуск linkchecker для проверки внешних ссылок поддоменов..."
+    INTERMEDIATE_FILE="${TARGET_DIR}/linkchecker_output.txt"
+    > "${INTERMEDIATE_FILE}"  # Очистка промежуточного файла
+
+    while read -r subdomain; do
+        echo "Обработка поддомена: ${subdomain}"
+        linkchecker "http://${subdomain}" --check-extern --ignore-url '\?.*' --verbose | tee -a "${INTERMEDIATE_FILE}"
+    done < "${OUTPUT_AVAILABLE}"
+
+    # Фильтрация ссылок и доменов
+    echo "Фильтрация ссылок и доменов..."
+    cat "${INTERMEDIATE_FILE}" | grep "Real URL" | grep -oP 'https?://[^ ]+' | grep -v -E "twitter.com|google.com|youtube.com|github.com|pinterest.com|wikipedia.org|reddit.com|apple.com|facebook.com|instagram.com|linkedin.com" | awk -F/ '{print $3}' | sort -u >> "${OUTPUT_AVAILABLE}"
 }
 
 # Функция для запуска subzy
