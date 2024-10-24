@@ -1,5 +1,4 @@
-
-# NebtyRecon
+### NebtyRecon
 
 ### **Installation:**
 To install **NebtyRecon** on Kali Linux, follow these steps:
@@ -75,6 +74,9 @@ Once installed, you can run the script with the following command:
 7. **Broken or Insecure Links**:
    - **linkchecker** not only helps identify broken or outdated links, but also aids in finding links that may be exploitable for phishing, malicious redirects, or other attacks.
 
+8. **DNS Zone Transfers:**
+   - The script also uses **dnsrecon** to check for DNS zone transfers, a vulnerability where attackers can retrieve sensitive DNS records. If a successful zone transfer is identified, the vulnerability is flagged, allowing the tester to alert the target for immediate remediation.
+
 ---
 
 ### **Example Usage:**
@@ -98,7 +100,6 @@ This script is designed to help penetration testers and security professionals a
 - Identifying sensitive data exposure in JavaScript files
 - Finding unused subdomains vulnerable to takeover
 - Detecting broken or insecure external links with potential second-order subdomain hijacking risks
+- Checking for DNS zone transfer vulnerabilities using dnsrecon
 
 By automating these processes, **NebtyRecon** allows you to quickly identify key weaknesses in a target's web infrastructure.
-
-
