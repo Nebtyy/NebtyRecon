@@ -38,6 +38,8 @@ AVAILABLE_URLS="${TARGET_DIR}/Available_urls.txt"
 FILT_PARAM_WV="${TARGET_DIR}/possible_parameters_without_value.txt"
 
 KATANA_OUT="${BASE_DIR}/wayback/katanaUrls.txt"  # Файл для вывода katana
+DNSZONETRANSFER="${TARGET_DIR}/DNSzonetransfer.txt"  # Файл для вывода dnsrecon
+DNSVULN="${TARGET_DIR}/DNSVULN.txt"  # Файл для вывода уязвимостей DNS
 
 # Создание директории для вывода, если она не существует
 mkdir -p "${TARGET_DIR}"
@@ -57,9 +59,14 @@ for file in "${BASE_DIR}/wayback/domain_out.txt" \
             "${FILT_PATH}" \
             "${FILT_PARAM_WV}" \
             "${AVAILABLE_URLS}" \
+            "${DNSZONETRANSFER}" \
+            "${DNSVULN}" \
             "${KATANA_OUT}"; do
     touch "$file"
 done
+
+> "${DNSZONETRANSFER}"
+> "${DNSVULN}"
 
 # Функция для проверки доступности домена
 check_domain() {
@@ -141,6 +148,18 @@ check_availability() {
             echo "$subdomain"
         fi
     ' >> "${OUTPUT_AVAILABLE}"
+    
+     # Запуск dnsrecon для проверки зон
+    echo "Запуск dnsrecon для проверки зон..."
+    while read -r domain; do
+        echo "Запуск dnsrecon для $domain..."
+        dnsrecon -d "$domain" -t axfr >> "${DNSZONETRANSFER}"
+        echo "------------------------------------------------------------------------" >> "${DNSZONETRANSFER}"
+    done < "${OUTPUT_AVAILABLE}"
+
+    # Фильтрация уязвимостей DNS
+    echo "Фильтрация уязвимостей DNS..."
+    cat "${DNSZONETRANSFER}" | grep "Zone Transfer successful" > "${DNSVULN}"
     
     # Запуск linkchecker для каждого поддомена из ${OUTPUT_AVAILABLE}
     echo "Запуск linkchecker для проверки внешних ссылок поддоменов..."
