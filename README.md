@@ -5,6 +5,9 @@ To install **NebtyRecon** on Kali Linux, follow these steps:
 
 ```bash
 git clone https://github.com/Nebtyy/NebtyRecon.git
+sudo apt install python3-venv
+python3 -m venv myenv
+source myenv/bin/activate
 cd NebtyRecon
 chmod +x ./*
 ./setup_and_run.sh
