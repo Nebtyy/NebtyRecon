@@ -9,8 +9,8 @@ echo "███╗   ██╗███████╗██████╗ █�
 ╚═╝  ╚═══╝╚══════╝╚═════╝    ╚═╝      ╚═╝   ╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═════╝ ╚═╝  ╚═══╝"
 echo "                                                                        Made by Nebty"
 # Проверка на наличие двух или трёх аргументов
-if [ $# -lt 2 ] || [ $# -gt 3 ]; then
-    echo "Usage: $0 <target_domain> <mode> [search_pattern]"
+if [ $# -lt 4 ] || [ $# -gt 4 ]; then
+    echo "Usage: $0 <target_domain> <mode> <search_pattern> <sudo_password>"
     exit 1
 fi
 
@@ -18,10 +18,14 @@ fi
 TARGET="$1"
 MODE="$2"
 SEARCH_PATTERN="$3"
+PASSWORD="$4"
 
+echo "we are preparing the system..."
 # Экранирование точки в шаблоне поиска
 SEARCH_PATTERN="${SEARCH_PATTERN//./\\.}"
 
+XSL_PATH=$(find ~ /home /usr /etc -type f -name "nmap-bootstrap.xsl" 2>/dev/null | head -n 1)
+SECRET_FINDER_PATH=$(find ~ /home /usr /etc -type f -name "SecretFinder.py" 2>/dev/null | head -n 1)
 BASE_DIR="."
 TARGET_DIR="${BASE_DIR}/${TARGET}"
 OUTPUT_ALL="${TARGET_DIR}/${TARGET}_all_subdomains.txt"
@@ -87,7 +91,7 @@ search_subdomains() {
 
     # subfinder
     echo "subfinder"
-    subfinder -d "${TARGET}" | sort -u > "${TARGET_DIR}/${TARGET}_subfinder.txt"
+    subfinder  -recursive -d "${TARGET}" | sort -u > "${TARGET_DIR}/${TARGET}_subfinder.txt"
 
     # sublist3r
     echo "sublist3r"
@@ -95,7 +99,7 @@ search_subdomains() {
 
     # crt.sh
     echo "crt.sh"
-    curl -s "https://crt.sh/?q=${TARGET}&output=json" | jq -r '.[] | .name_value, .common_name' | sort -u > "${TARGET_DIR}/${TARGET}_crt.sh.txt"
+    curl -s "https://crt.sh/?q=%25.${TARGET}&output=json" | jq -r '.[].name_value' | sed 's/\*\.//g' | sort -u > "${TARGET_DIR}/${TARGET}_crt.sh.txt"
     if [ $? -ne 0 ]; then
         echo "Ошибка при обработке данных crt.sh. Проверьте формат ответа."
     fi
@@ -127,6 +131,31 @@ combine_results() {
           "${TARGET_DIR}/${TARGET}_assetfinder.txt"
 }
 
+add_more_subdomains() {
+    echo "Would you like to add additional subdomains? (yes/no)"
+    read -r response
+
+    if [[ "$response" =~ ^[Yy]es$ ]]; then
+        echo "Please enter the subdomains, each on a new line (press Enter twice to finish):"
+
+        additional_subdomains=""
+        while true; do
+            read -r line
+            if [[ -z "$line" ]]; then
+                break  # Exit the loop if the user presses Enter without input
+            fi
+            additional_subdomains+="$line"$'\n'  # Append each subdomain with a newline
+        done
+
+        # Remove the trailing newline character and any empty lines
+        additional_subdomains=$(echo -e "$additional_subdomains" | sed '/^$/d')
+        echo -e "$additional_subdomains" >> "${OUTPUT_ALL}"
+        
+        echo "Additional subdomains added to the file ${OUTPUT_ALL}."
+    fi
+}
+
+
 # Функция для проверки доступности поддоменов с использованием xargs
 check_availability() {
     echo "Проверка доступности поддоменов..."
@@ -148,6 +177,82 @@ check_availability() {
             echo "$subdomain"
         fi
     ' >> "${OUTPUT_AVAILABLE}"
+    
+    
+    
+########################################################################################################    
+     # Запуск nmap и вывод HTML отчета
+    BBNMAP_SCAN_OUT="${TARGET_DIR}/bbnmap_scan.html"
+
+    # Запуск nmap с указанными параметрами
+    echo "Запуск nmap..."
+    echo ${PASSWORD} | sudo -S nmap -iL "${OUTPUT_AVAILABLE}" -sS -T4 -A -sC -oA bbnmap_scan -Pn --min-rate 5000 --max-retries 1 --max-scan-delay 20ms --top-ports 1000 --stylesheet https://raw.githubusercontent.com/honze-net/nmap-bootstrap-xsl/master/nmap-bootstrap.xsl
+
+    # Проверка наличия созданных файлов
+    if [ ! -f "bbnmap_scan.xml" ]; then
+        echo "Ошибка: Файл bbnmap_scan.xml не был создан."
+        exit 1
+    fi
+
+    # Преобразование результата в HTML с использованием xsltproc
+    echo "Преобразование в HTML..."
+    xsltproc -o "${BBNMAP_SCAN_OUT}" "${XSL_PATH}" bbnmap_scan.xml
+
+    # Проверка успешности преобразования
+    if [ ! -f "${BBNMAP_SCAN_OUT}" ]; then
+        echo "Ошибка: Не удалось создать HTML отчет."
+        exit 1
+    fi
+
+    
+    echo "Путь к отчету: ${BBNMAP_SCAN_OUT}."
+    
+
+
+########################################################################################################
+    if command -v aquatone &> /dev/null; then
+        echo "Делаем снимок домена (aquatone найден)"
+        cat "${OUTPUT_AVAILABLE}" | aquatone -out "${TARGET_DIR}/Domain_Screen"
+    else
+        echo "Ошибка: aquatone не установлен или не доступен в PATH"
+    fi
+
+
+     
+     
+     
+     
+########################################################################################################
+     # Поиск базовой Open Redirect  после имени поддомена 
+
+    REDIRECT_OUT="${TARGET_DIR}/REDIRECT_results.txt"
+    > "${REDIRECT_OUT}"
+    
+        # Чтение поддоменов из файла и проверка каждого
+    while IFS= read -r subdomain; do
+      # Пропускаем пустые строки и строки, начинающиеся с комментариев
+      if [[ -z "$subdomain" || "$subdomain" =~ ^# ]]; then
+        continue
+      fi
+
+      # Формируем URL с поддоменом и добавляем //evil.com
+      url="https://${subdomain}//evil.com"
+
+      # Выполнение запроса с опцией для отслеживания редиректов
+      response=$(curl -s -L -I "$url" | grep -i "^Location:")
+
+      # Проверка наличия редиректа и запись результата в файл
+      if [[ -z "$response" ]]; then
+        echo "Ничего не найдено для ${subdomain}" >> "$REDIRECT_OUT"
+      else
+        echo "Редирект на: ${response#Location: } для ${subdomain}" >> "$REDIRECT_OUT"
+      fi
+    done < "${OUTPUT_AVAILABLE}"
+
+    # Информируем о завершении
+    echo "Результаты записаны в файл $REDIRECT_OUT"
+
+########################################################################################################
     
      # Запуск dnsrecon для проверки зон
     echo "Запуск dnsrecon для проверки зон..."
@@ -173,7 +278,8 @@ check_availability() {
 
     # Фильтрация ссылок и доменов
     echo "Фильтрация ссылок и доменов..."
-    cat "${INTERMEDIATE_FILE}" | grep "Real URL" | grep -oP 'https?://[^ ]+' | grep -v -E "twitter.com|google.com|youtube.com|github.com|pinterest.com|wikipedia.org|reddit.com|apple.com|facebook.com|instagram.com|linkedin.com" | awk -F/ '{print $3}' | sort -u >> "${OUTPUT_AVAILABLE}"
+    cat "${INTERMEDIATE_FILE}" | grep "Real URL" | grep -oP 'https?://[^ ]+' | grep -v -E "twitter.com|google.com|youtube.com|github.com|pinterest.com|wikipedia.org|reddit.com|apple.com|facebook.com|instagram.com|linkedin.com" | awk -F/ '{print $3}' | sort -u >> "${OUTPUT_ALL}"
+########################################################################################################
 }
 
 # Функция для запуска subzy
@@ -189,6 +295,7 @@ run_subzy() {
 
 # Функция для поиска и обработки URL с использованием waybackurls, gau, katana
 find_urls() {
+    DOMAIN_FILE="${OUTPUT_AVAILABLE}"
     DOMAIN_OUT="${BASE_DIR}/wayback/domain_out.txt"
     HTTPX_OUT="${BASE_DIR}/wayback/domain_out_httpx.txt"
     GAU_OUT="${BASE_DIR}/wayback/domain_out_gau.txt"
@@ -198,6 +305,7 @@ find_urls() {
     FILT_PARAM="${TARGET_DIR}/possible_parameters.txt"
     FILT_PATH="${TARGET_DIR}/possible_path.txt"
     AVAILABLE_URLS="${TARGET_DIR}/Available_urls.txt"
+    
 
     echo "Очистка всех выходных файлов..."
     > "${DOMAIN_OUT}"
@@ -210,6 +318,7 @@ find_urls() {
     > "${FILT_PARAM_WV}"
     > "${FILT_PATH}"
     > "${AVAILABLE_URLS}"
+    
 
     echo "Проверка содержимого DOMAIN_FILE: ${DOMAIN_FILE}"
     cat "${DOMAIN_FILE}"
@@ -230,7 +339,7 @@ find_urls() {
     
     echo "Запуск katana для обработки URL..."
     if command -v katana &> /dev/null; then
-        cat "${DOMAIN_OUT}" | katana | hakrawler -d 3 | grep "${SEARCH_PATTERN}" | tee -a "${KATANA_OUT}"
+    	 cat "${DOMAIN_OUT}" | uro | tee >(sort -u | tee >(grep "${SEARCH_PATTERN}" | tee >(hakrawler -d 3 | tee >(sort -u > "${KATANA_OUT}"))))
     else
         echo "Ошибка: Команда katana не найдена."
     fi
@@ -247,7 +356,7 @@ find_urls() {
 
 
     echo "Сбор всех уникальных URL, включая katana..."
-    cat "${DOMAIN_OUT}" "${GAU_OUT}" "${HTTPX_OUT}" "${KATANA_OUT}" | sort -u > "${UNIQUE_URLS}"
+    cat "${DOMAIN_OUT}" "${GAU_OUT}" "${HTTPX_OUT}" "${KATANA_OUT}" | uro | sort -u > "${UNIQUE_URLS}"
 
     echo "Поиск и запись URL в ${UNIQUE_URLS} завершен."
     
@@ -273,10 +382,10 @@ find_secrets() {
     > "${TEMP_SECRET_FILE}"
 
     # Определение директорий и файлов
-    BASE_DIR=./wayback
-    DOMAIN_FILE="${BASE_DIR}/domain_out_httpx.txt"
-    SORTURLS_FILE="${BASE_DIR}/sorturls.txt"
-    SECRET_FINDER_PATH=~/Downloads/secretfinder/SecretFinder.py
+    BASE_DIR="."
+    DOMAIN_FILE="${BASE_DIR}/wayback/domain_out_httpx.txt"
+    SORTURLS_FILE="${BASE_DIR}/wayback/sorturls.txt"
+    
 
     # Очистка файла sorturls.txt
     echo "Очистка файла ${SORTURLS_FILE}..."
@@ -304,30 +413,100 @@ find_secrets() {
 }
 
 
+Sort_Urls_Like_Possible_Vuln(){
+    output_dir="${BASE_DIR}/${TARGET}/URL_WITH_POSSIBLY_VULN_PARAM"
+    mkdir -p "$output_dir"
+
+    # Паттерны для параметров, которые могут указывать на уязвимости
+    open_redirect_pattern="([?&](redirect|url|destination|next|link|return|redir|go|continue|target|back|forward|reload|location|path|redirect_uri|goto|start|loc)[^&]*)"
+    ssrf_pattern="([?&](url|target|destination|proxy|request|host|server|file|endpoint|redirect|fetch|load|source|port|vhost|path|localhost|backend|forward|forwarded|forwarded-for|range)[^&]*)"
+    lfi_pattern="([?&](file|path|page|doc|dir|include|view|content|filename|template|source|root|url|document|log|config|uploads|var|etc|windows|template|script|config|wp-content|media|debug)[^&]*)"
+    xss_pattern="([?&](q|search|query|input|ref|url|js|script|message|comment|id|name|data|redirect|goto|value|username|value|password|cookie|meta|http-equiv|header|form|content|action)[^&]*)"
+    sql_injection_pattern="([?&](id|search|q|query|page|input|user|pass|value|table|column|order|limit|count|offset|group|union|select|insert|drop|--|%27|%22|%3B|%3D|%2D%2D|%2F%2A|%2A%2F|%2F%2D|%3C|%3E|%28|%29|%24|%2F|%40|%5C|%2F%3A)|\.php|\.asp|\.aspx|\.jsp|\.jspx)"
+    secret_document_pattern="\.xls$|\.tar\.gz$|\.bak$|\.xml$|\.xlsx$|\.json$|\.rar$|\.pdf$|\.sql$|\.doc$|\.docx$|\.pptx$|\.txt$|\.git$|\.zip$|\.tgz$|\.7z$"
+
+    # Чтение URL-ов из файла и анализ
+    while IFS= read -r url; do
+        # Поиск Open Redirect
+        echo "$url" | grep -E "$open_redirect_pattern" >> "$output_dir/open_redirect_found.txt"
+    
+        # Поиск SSRF
+        echo "$url" | grep -E "$ssrf_pattern" >> "$output_dir/ssrf_found.txt"
+
+        # Поиск LFI
+        echo "$url" | grep -E "$lfi_pattern" >> "$output_dir/lfi_found.txt"
+
+        # Поиск XSS
+        echo "$url" | grep -E "$xss_pattern" >> "$output_dir/xss_found.txt"
+
+        # Поиск SQL инъекций
+        echo "$url" | grep -E "$sql_injection_pattern" >> "$output_dir/sql_injections_found.txt"
+
+        # Поиск утечек секретных документов
+        echo "$url" | grep -E "$secret_document_pattern" >> "$output_dir/secret_documents_found.txt"
+    done < "${ALL_PARAMETER}"
+
+    echo "Анализ завершен. Результаты находятся в директории $output_dir."
+
+}
+check_host_access() {
+    while ! ping -c 1 -W 1 "$TARGET" &> /dev/null; do
+        echo "Хост $TARGET недоступен. Ожидаю подключения..."
+        sleep 5  # Подождем перед повторной проверкой
+    done
+}
+
+
 # Главная логика работы скрипта, в зависимости от выбранного режима
 case "$MODE" in
     "search")
+        check_host_access
+        add_more_subdomains
+        check_host_access
+        check_domain
+        check_host_access
         search_subdomains
-        combine_results
+        check_host_access
+        combine_results        
         ;;
 
     "find")
+        check_host_access        
         check_availability
+        check_host_access
         run_subzy
         ;;
 
     "process")
+        check_host_access
         find_urls
+        check_host_access
         find_secrets
+        check_host_access
+        Sort_Urls_Like_Possible_Vuln
         ;;
 
+
+
     "all")
+        check_host_access
+        add_more_subdomains
+        check_host_access
+        check_domain
+        check_host_access
         search_subdomains
+        check_host_access
         combine_results
+        check_host_access
         check_availability
+        check_host_access
         run_subzy
+        check_host_access
         find_urls
+        check_host_access       
         find_secrets
+        check_host_access
+        Sort_Urls_Like_Possible_Vuln
         ;;
 
     *)
@@ -336,5 +515,8 @@ case "$MODE" in
         exit 1
         ;;
 esac
+
+
+
 
 echo "Завершено!"
