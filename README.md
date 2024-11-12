@@ -105,6 +105,58 @@ Extracts potentially vulnerable endpoints by analyzing URL parameters and file e
    ```
 
 ---
+### **Directory_structure:**
+```
+TARGET
+├── domain_screens
+│   ├── aquatone_report.html
+│   ├── aquatone_session.json
+│   ├── aquatone_urls.txt
+│   ├── headers
+│   │   ├── http__TARGET.txt
+│   │   └── https__TARGET.txt
+│   ├── html
+│   │   ├── http__TARGET.html
+│   │   └── https__TARGET.html
+│   └── screenshots
+│       └── https__TARGET.png
+├── for_debugging
+│   ├── domain_out_gau.txt
+│   ├── domain_out_httpx.txt
+│   ├── domain_out.txt
+│   ├── domain_out_uro.txt
+│   ├── katanaUrls.txt
+│   ├── sorturls.txt
+│   └── unique_urls.txt
+├── potential_vulnerable_urls
+│   ├── lfi.txt
+│   ├── open_redirect.txt
+│   ├── sensitive_docs.txt
+│   ├── sql_injections.txt
+│   ├── ssrf.txt
+│   └── xss.txt
+├── reports
+│   ├── bbnmap_scan.html
+│   ├── dns_vulnerabilities.txt
+│   ├── dns_zone_transfer.txt
+│   ├── linkchecker_output.txt
+│   ├── open_redirect_results.txt
+│   └── subdomain_takeover.txt
+├── secrets
+│   └── secret_findings.txt
+├── subdomains
+│   ├── all_subdomains.txt
+│   └── available_subdomains.txt
+└── urls
+    ├── all_filtered_url.txt
+    ├── available_urls.txt
+    ├── possible_parameters_without_value.txt
+    ├── possible_param.txt
+    └── possible_path.txt
+```
+##### More about the structure in: Directory_structure_EN.md / Directory_structure_RU.md
+
+---
 
 ### **Overall Purpose:**
 This script is designed to help penetration testers and security professionals actively search for vulnerabilities in web applications, focusing on:
