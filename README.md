@@ -74,11 +74,11 @@ Sensitive Information Exposure:
 Potential Security Vulnerabilities in URLs:
 
 7. By filtering parameters and paths, it highlights possible attack vectors like:
-- Open redirects
-- Parameter pollution
-- SQL injection points
-- File inclusion attacks
-- Broken or Insecure Links:
+   - Open redirects
+   - Parameter pollution
+   - SQL injection points
+   - File inclusion attacks
+   - Broken or Insecure Links:
 
 8. linkchecker not only helps identify broken or outdated links, but also aids in finding links that may be exploitable for phishing, malicious redirects, or other attacks.
 DNS Zone Transfers:
