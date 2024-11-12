@@ -4,4 +4,5 @@ lxml
 urllib3
 html5lib
 selenium
-uro  # Добавлено для универсальных HTTP-запросов
+uro
+subprocess
