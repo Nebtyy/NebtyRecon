@@ -90,6 +90,7 @@ Checks subdomains for potential open redirect vulnerabilities by appending commo
 Categorization of Vulnerable Endpoints:
 
 Extracts potentially vulnerable endpoints by analyzing URL parameters and file extensions, categorizing endpoints based on patterns associated with vulnerabilities such as SQL injection, SSRF, LFI, XSS, and sensitive file disclosures.
+
 ---
 
 ### **Example Usage:**
