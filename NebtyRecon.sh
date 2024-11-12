@@ -24,40 +24,48 @@ echo "we are preparing the system..."
 # Экранирование точки в шаблоне поиска
 SEARCH_PATTERN="${SEARCH_PATTERN//./\\.}"
 
+
+
+
 XSL_PATH=$(find ~ /home /usr /etc -type f -name "nmap-bootstrap.xsl" 2>/dev/null | head -n 1)
 SECRET_FINDER_PATH=$(find ~ /home /usr /etc -type f -name "SecretFinder.py" 2>/dev/null | head -n 1)
 BASE_DIR="."
 TARGET_DIR="${BASE_DIR}/${TARGET}"
-OUTPUT_ALL="${TARGET_DIR}/${TARGET}_all_subdomains.txt"
-OUTPUT_AVAILABLE="${TARGET_DIR}/${TARGET}_available_subdomains.txt"
+OUTPUT_ALL="${TARGET_DIR}/subdomains/all_subdomains.txt"
+OUTPUT_AVAILABLE="${TARGET_DIR}/subdomains/available_subdomains.txt"
 DOMAIN_FILE="${OUTPUT_AVAILABLE}"
-SORTURLS_FILE="${BASE_DIR}/wayback/sorturls.txt"
-SECRET_FINDER_PATH="/home/kali/Downloads/secretfinder/SecretFinder.py"
-SUBZY_OUTPUT="${TARGET_DIR}/subzy_output.txt"
-TEMP_SECRET_FILE="${TARGET_DIR}/secretfind_output.txt"
-ALL_PARAMETER="${TARGET_DIR}/all_url_with_filtered_parametr"  #записывать после uro последнего файла
-FILT_PARAM="${TARGET_DIR}/possible_parameters.txt"
-FILT_PATH="${TARGET_DIR}/possible_path.txt"
-AVAILABLE_URLS="${TARGET_DIR}/Available_urls.txt"
-FILT_PARAM_WV="${TARGET_DIR}/possible_parameters_without_value.txt"
+SORTURLS_FILE="${BASE_DIR}/${TARGET_DIR}/for_debugging/sorturls.txt"
+SUBZY_OUTPUT="${TARGET_DIR}/reports/subdomain_takeover.txt"
+TEMP_SECRET_FILE="${TARGET_DIR}/secrets/secret_findings.txt"
+ALL_PARAMETER="${TARGET_DIR}/urls/all_filtered_url.txt"  
+FILT_PARAM="${TARGET_DIR}/urls/possible_param.txt"
+FILT_PATH="${TARGET_DIR}/urls/possible_path.txt"
+AVAILABLE_URLS="${TARGET_DIR}/urls/available_urls.txt"
+FILT_PARAM_WV="${TARGET_DIR}/urls/possible_parameters_without_value.txt"  #For x8
 
-KATANA_OUT="${BASE_DIR}/wayback/katanaUrls.txt"  # Файл для вывода katana
-DNSZONETRANSFER="${TARGET_DIR}/DNSzonetransfer.txt"  # Файл для вывода dnsrecon
-DNSVULN="${TARGET_DIR}/DNSVULN.txt"  # Файл для вывода уязвимостей DNS
+output_dir="${BASE_DIR}/${TARGET}/potential_vulnerable_urls/"
+KATANA_OUT="${BASE_DIR}/${TARGET_DIR}/for_debugging/katanaUrls.txt"  # Файл для вывода katana , надо в конце удалять подобные файлы
+DNSZONETRANSFER="${TARGET_DIR}/reports/dns_zone_transfer.txt"  # Файл для вывода dnsrecon
+DNSVULN="${TARGET_DIR}/reports/dns_vulnerabilities.txt"  # Файл для вывода уязвимостей DNS
 
 # Создание директории для вывода, если она не существует
 mkdir -p "${TARGET_DIR}"
-mkdir -p "${BASE_DIR}/wayback"
+mkdir -p "${BASE_DIR}/${TARGET_DIR}/urls"
+mkdir -p "${BASE_DIR}/${TARGET_DIR}/for_debugging"
+mkdir -p "${BASE_DIR}/${TARGET_DIR}/secrets"
+mkdir -p "${BASE_DIR}/${TARGET_DIR}/reports"
+mkdir -p "${BASE_DIR}/${TARGET_DIR}/subdomains"
+mkdir -p "$output_dir"
 
 # Создание всех необходимых файлов перед их очисткой
-for file in "${BASE_DIR}/wayback/domain_out.txt" \
-            "${BASE_DIR}/wayback/domain_out_httpx.txt" \
-            "${BASE_DIR}/wayback/domain_out_uro.txt" \
-            "${BASE_DIR}/wayback/domain_out_gau.txt" \
-            "${BASE_DIR}/wayback/unique_urls.txt" \
+for file in "${BASE_DIR}/${TARGET_DIR}/for_debugging/domain_out.txt" \
+            "${BASE_DIR}/${TARGET_DIR}/for_debugging/domain_out_httpx.txt" \
+            "${BASE_DIR}/${TARGET_DIR}/for_debugging/domain_out_uro.txt" \
+            "${BASE_DIR}/${TARGET_DIR}/for_debugging/domain_out_gau.txt" \
+            "${BASE_DIR}/${TARGET_DIR}/for_debugging/unique_urls.txt" \
             "${TEMP_SECRET_FILE}" \
             "${SORTURLS_FILE}" \
-            "${SUBZY_OUTPUT}" \
+           "${SUBZY_OUTPUT}" \
             "${ALL_PARAMETER}" \
             "${FILT_PARAM}" \
             "${FILT_PATH}" \
@@ -181,38 +189,41 @@ check_availability() {
     
     
 ########################################################################################################    
-     # Запуск nmap и вывод HTML отчета
-    BBNMAP_SCAN_OUT="${TARGET_DIR}/bbnmap_scan.html"
+# Запуск nmap и вывод HTML отчета
+BBNMAP_SCAN_OUT="${TARGET_DIR}/reports/bbnmap_scan.html"
+BBNMAP_SCAN_BASE="${TARGET_DIR}/reports/bbnmap_scan"
 
-    # Запуск nmap с указанными параметрами
-    echo "Запуск nmap..."
-    echo ${PASSWORD} | sudo -S nmap -iL "${OUTPUT_AVAILABLE}" -sS -T4 -A -sC -oA bbnmap_scan -Pn --min-rate 5000 --max-retries 1 --max-scan-delay 20ms --top-ports 1000 --stylesheet https://raw.githubusercontent.com/honze-net/nmap-bootstrap-xsl/master/nmap-bootstrap.xsl
+# Запуск nmap с указанными параметрами
+echo "Запуск nmap..."
+echo ${PASSWORD} | sudo -S nmap -iL "${OUTPUT_AVAILABLE}" -sS -T4 -A -sC -oA "${BBNMAP_SCAN_BASE}" -Pn --min-rate 5000 --max-retries 1 --max-scan-delay 20ms --top-ports 1000 --stylesheet https://raw.githubusercontent.com/honze-net/nmap-bootstrap-xsl/master/nmap-bootstrap.xsl
 
-    # Проверка наличия созданных файлов
-    if [ ! -f "bbnmap_scan.xml" ]; then
-        echo "Ошибка: Файл bbnmap_scan.xml не был создан."
-        exit 1
-    fi
+# Проверка наличия созданных файлов
+if [ ! -f "${BBNMAP_SCAN_BASE}.xml" ]; then
+    echo "Ошибка: Файл bbnmap_scan.xml не был создан."
+    exit 1
+fi
 
-    # Преобразование результата в HTML с использованием xsltproc
-    echo "Преобразование в HTML..."
-    xsltproc -o "${BBNMAP_SCAN_OUT}" "${XSL_PATH}" bbnmap_scan.xml
+# Преобразование результата в HTML с использованием xsltproc
+echo "Преобразование в HTML..."
+xsltproc -o "${BBNMAP_SCAN_OUT}" "${XSL_PATH}" "${BBNMAP_SCAN_BASE}.xml"
 
-    # Проверка успешности преобразования
-    if [ ! -f "${BBNMAP_SCAN_OUT}" ]; then
-        echo "Ошибка: Не удалось создать HTML отчет."
-        exit 1
-    fi
+# Проверка успешности преобразования
+if [ ! -f "${BBNMAP_SCAN_OUT}" ]; then
+    echo "Ошибка: Не удалось создать HTML отчет."
+    exit 1
+fi
 
-    
-    echo "Путь к отчету: ${BBNMAP_SCAN_OUT}."
-    
+echo "Путь к отчету: ${BBNMAP_SCAN_OUT}."
 
+# Удаление временных файлов nmap
+rm -f "${BBNMAP_SCAN_BASE}.gnmap" "${BBNMAP_SCAN_BASE}.nmap" "${BBNMAP_SCAN_BASE}.xml"
 
+echo "Временные файлы удалены."
 ########################################################################################################
+
     if command -v aquatone &> /dev/null; then
         echo "Делаем снимок домена (aquatone найден)"
-        cat "${OUTPUT_AVAILABLE}" | aquatone -out "${TARGET_DIR}/Domain_Screen"
+        cat "${OUTPUT_AVAILABLE}" | aquatone -out "${TARGET_DIR}/domain_screens/"
     else
         echo "Ошибка: aquatone не установлен или не доступен в PATH"
     fi
@@ -225,7 +236,7 @@ check_availability() {
 ########################################################################################################
      # Поиск базовой Open Redirect  после имени поддомена 
 
-    REDIRECT_OUT="${TARGET_DIR}/REDIRECT_results.txt"
+    REDIRECT_OUT="${TARGET_DIR}/reports/open_redirect_results.txt"
     > "${REDIRECT_OUT}"
     
         # Чтение поддоменов из файла и проверка каждого
@@ -268,7 +279,7 @@ check_availability() {
     
     # Запуск linkchecker для каждого поддомена из ${OUTPUT_AVAILABLE}
     echo "Запуск linkchecker для проверки внешних ссылок поддоменов..."
-    INTERMEDIATE_FILE="${TARGET_DIR}/linkchecker_output.txt"
+    INTERMEDIATE_FILE="${TARGET_DIR}/reports/linkchecker_output.txt"
     > "${INTERMEDIATE_FILE}"  # Очистка промежуточного файла
 
     while read -r subdomain; do
@@ -296,15 +307,15 @@ run_subzy() {
 # Функция для поиска и обработки URL с использованием waybackurls, gau, katana
 find_urls() {
     DOMAIN_FILE="${OUTPUT_AVAILABLE}"
-    DOMAIN_OUT="${BASE_DIR}/wayback/domain_out.txt"
-    HTTPX_OUT="${BASE_DIR}/wayback/domain_out_httpx.txt"
-    GAU_OUT="${BASE_DIR}/wayback/domain_out_gau.txt"
-    UNIQUE_URLS="${BASE_DIR}/wayback/unique_urls.txt"
-    KATANA_OUT="${BASE_DIR}/wayback/katanaUrls.txt"  # Файл для вывода katana
-    ALL_PARAMETER="${TARGET_DIR}/all_url_with_filtered_parametr"  #записывать после uro последнего файла
-    FILT_PARAM="${TARGET_DIR}/possible_parameters.txt"
-    FILT_PATH="${TARGET_DIR}/possible_path.txt"
-    AVAILABLE_URLS="${TARGET_DIR}/Available_urls.txt"
+    DOMAIN_OUT="${BASE_DIR}/${TARGET_DIR}/for_debugging/domain_out.txt"
+    HTTPX_OUT="${BASE_DIR}/${TARGET_DIR}/for_debugging/domain_out_httpx.txt"
+    GAU_OUT="${BASE_DIR}/${TARGET_DIR}/for_debugging/domain_out_gau.txt"
+    UNIQUE_URLS="${BASE_DIR}/${TARGET_DIR}/for_debugging/unique_urls.txt"
+    KATANA_OUT="${BASE_DIR}/${TARGET_DIR}/for_debugging/katanaUrls.txt"  # Файл для вывода katana
+    ALL_PARAMETER="${TARGET_DIR}/urls/all_filtered_url.txt"  
+    FILT_PARAM="${TARGET_DIR}/urls/possible_param.txt"
+    FILT_PATH="${TARGET_DIR}/urls/possible_path.txt"
+    AVAILABLE_URLS="${TARGET_DIR}/urls/available_urls.txt"
     
 
     echo "Очистка всех выходных файлов..."
@@ -371,7 +382,7 @@ find_urls() {
     cat "${UNIQUE_URLS}" | sed -E 's#https?://[^/]+(/[^?]*).*#\1#' | grep -v "http" | sort -u | tee "${FILT_PATH}"
     cat "${UNIQUE_URLS}" | sed -E 's#.*\?(.*)#\1#' | tr '&' '\n' | grep -v "http" | sort -t'=' -k1,1 -u | tee "${FILT_PARAM}"
     cat "${UNIQUE_URLS}" | sed -E 's#.*\?(.*)#\1#' | tr '&' '\n' | grep -v "http" | awk -F '=' '{print $1}' | sort -u | tee "${FILT_PARAM_WV}"
-
+    echo "find_urls звершился"
 }
 
 # Функция для поиска секретов в JavaScript файлах
@@ -383,8 +394,8 @@ find_secrets() {
 
     # Определение директорий и файлов
     BASE_DIR="."
-    DOMAIN_FILE="${BASE_DIR}/wayback/domain_out_httpx.txt"
-    SORTURLS_FILE="${BASE_DIR}/wayback/sorturls.txt"
+    DOMAIN_FILE="${BASE_DIR}/${TARGET_DIR}/for_debugging/domain_out_httpx.txt"
+    SORTURLS_FILE="${BASE_DIR}/${TARGET_DIR}/for_debugging/sorturls.txt"
     
 
     # Очистка файла sorturls.txt
@@ -414,8 +425,8 @@ find_secrets() {
 
 
 Sort_Urls_Like_Possible_Vuln(){
-    output_dir="${BASE_DIR}/${TARGET}/URL_WITH_POSSIBLY_VULN_PARAM"
-    mkdir -p "$output_dir"
+    echo "сортировка urls..."
+    output_dir="${BASE_DIR}/${TARGET}/potential_vulnerable_urls/"
 
     # Паттерны для параметров, которые могут указывать на уязвимости
     open_redirect_pattern="([?&](redirect|url|destination|next|link|return|redir|go|continue|target|back|forward|reload|location|path|redirect_uri|goto|start|loc)[^&]*)"
@@ -428,22 +439,22 @@ Sort_Urls_Like_Possible_Vuln(){
     # Чтение URL-ов из файла и анализ
     while IFS= read -r url; do
         # Поиск Open Redirect
-        echo "$url" | grep -E "$open_redirect_pattern" >> "$output_dir/open_redirect_found.txt"
+        echo "$url" | grep -E "$open_redirect_pattern" >> "$output_dir/open_redirect.txt"
     
         # Поиск SSRF
-        echo "$url" | grep -E "$ssrf_pattern" >> "$output_dir/ssrf_found.txt"
+        echo "$url" | grep -E "$ssrf_pattern" >> "$output_dir/ssrf.txt"
 
         # Поиск LFI
-        echo "$url" | grep -E "$lfi_pattern" >> "$output_dir/lfi_found.txt"
+        echo "$url" | grep -E "$lfi_pattern" >> "$output_dir/lfi.txt"
 
         # Поиск XSS
-        echo "$url" | grep -E "$xss_pattern" >> "$output_dir/xss_found.txt"
+        echo "$url" | grep -E "$xss_pattern" >> "$output_dir/xss.txt"
 
         # Поиск SQL инъекций
-        echo "$url" | grep -E "$sql_injection_pattern" >> "$output_dir/sql_injections_found.txt"
+        echo "$url" | grep -E "$sql_injection_pattern" >> "$output_dir/sql_injections.txt"
 
         # Поиск утечек секретных документов
-        echo "$url" | grep -E "$secret_document_pattern" >> "$output_dir/secret_documents_found.txt"
+        echo "$url" | grep -E "$secret_document_pattern" >> "$output_dir/sensitive_docs.txt"
     done < "${ALL_PARAMETER}"
 
     echo "Анализ завершен. Результаты находятся в директории $output_dir."
