@@ -51,47 +51,38 @@ Once installed, you can run the script with the following command:
    - Sorting and categorizing potentially vulnerable endpoints based on parameters and file extensions.
 4. **Mode `all`**
    - Runs all the above steps sequentially.
-
+   
 ---
 
 ### **What This Script Can Find:**
 
-1. Subdomains and Exposed Hosts:
+1. **Subdomains and Exposed Hosts**
 
-2. The script uses multiple tools to find hidden or forgotten subdomains associated with a target domain, which can reveal overlooked parts of an application’s infrastructure.
-Unused or Vulnerable Subdomains:
+2. **Unused or Vulnerable Subdomains**: The script uses multiple tools to find hidden or forgotten subdomains associated with a target domain, which can reveal overlooked parts of an application’s infrastructure.
 
-3. The subzy tool checks for subdomains that might be vulnerable to subdomain takeover, a critical security risk where attackers can gain control of unused subdomains.
-Second-Order Subdomain Hijacking:
+3. **Subdomain Takeover Risks**: The `subzy` tool checks for subdomains that might be vulnerable to subdomain takeover, a critical security risk where attackers can gain control of unused subdomains.
 
-4. The linkchecker tool examines external links on available subdomains to detect broken or unsecured links. This includes checking for potential second-order subdomain takeover risks, where attackers could hijack external resources or subdomains linked from within a target domain.
-URL Discovery and Analysis:
+4. **Second-Order Subdomain Hijacking**: The script checks for potential second-order subdomain hijacking risks, where attackers could hijack external resources or subdomains linked from within a target domain.
 
-5. Collects URLs through waybackurls, gau, and katana, helping uncover endpoints, resources, or paths that may contain hidden or unsecured parts of a web application.
-Sensitive Information Exposure:
+5. **URL Discovery and Analysis**: The script collects URLs through tools like `waybackurls`, `gau`, and `katana`, helping uncover endpoints, resources, or paths that may contain hidden or unsecured parts of a web application.
 
-6. The SecretFinder tool analyzes JavaScript files for secrets such as API keys, access tokens, or other sensitive data that could be exposed in public scripts.
-Potential Security Vulnerabilities in URLs:
+6. **Sensitive Information Exposure**: The `SecretFinder` tool analyzes JavaScript files for secrets such as API keys, access tokens, or other sensitive data that could be exposed in public scripts.
 
-7. By filtering parameters and paths, it highlights possible attack vectors like:
+7. **Potential Security Vulnerabilities in URLs**: The script filters URL parameters and paths to highlight possible attack vectors, including:
    - Open redirects
    - Parameter pollution
    - SQL injection points
    - File inclusion attacks
-   - Broken or Insecure Links:
 
-8. linkchecker not only helps identify broken or outdated links, but also aids in finding links that may be exploitable for phishing, malicious redirects, or other attacks.
-DNS Zone Transfers:
+8. **Broken or Insecure Links**: The `linkchecker` tool helps identify broken or outdated links, as well as links that may be exploitable for phishing, malicious redirects, or other attacks.
 
-9. The script also uses dnsrecon to check for DNS zone transfers, a vulnerability where attackers can retrieve sensitive DNS records. If a successful zone transfer is identified, the vulnerability is flagged, allowing the tester to alert the target for immediate remediation.
-Open Redirects:
+9. **DNS Zone Transfers**: The script uses `dnsrecon` to check for DNS zone transfers, a vulnerability where attackers can retrieve sensitive DNS records. If a successful zone transfer is identified, the vulnerability is flagged, allowing the tester to alert the target for immediate remediation.
 
-10. Checks subdomains for potential open redirect vulnerabilities by appending common redirect patterns and verifying if the redirect is possible.
-Categorization of Vulnerable Endpoints:
+10. **Open Redirects**: The script checks subdomains for potential open redirect vulnerabilities by appending common redirect patterns and verifying if the redirect is possible.
 
-11. Extracts potentially vulnerable endpoints by analyzing URL parameters and file extensions, categorizing endpoints based on patterns associated with vulnerabilities such as SQL injection, SSRF, LFI, XSS, and sensitive file disclosures.
+11. **Categorization of Vulnerable Endpoints**: The script extracts potentially vulnerable endpoints by analyzing URL parameters and file extensions, categorizing endpoints based on patterns associated with vulnerabilities such as SQL injection, SSRF, LFI, XSS, and sensitive file disclosures.
 
----
+--- 
 
 ### **Example Usage:**
 
