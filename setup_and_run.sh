@@ -15,25 +15,51 @@ if ! command -v go &> /dev/null; then
     source ~/.profile
 fi
 
+# Ensure Go environment paths are set
+export PATH=$PATH:/usr/local/go/bin
+export PATH=$PATH:$(go env GOPATH)/bin
+echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.profile
+echo 'export PATH=$PATH:$(go env GOPATH)/bin' >> ~/.profile
+
 # Installing Go utilities
 echo "Installing Go utilities..."
 go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
 go install github.com/tomnomnom/assetfinder@latest
 go install -v github.com/OWASP/Amass/v3/...@latest
 go install github.com/lc/subzy@latest
-go install github.com/tomnomnom/waybackurls@latest
 go install github.com/lc/gau@latest
 go install github.com/projectdiscovery/katana/cmd/katana@latest
-go install github.com/michenriksen/aquatone@latest  # Install aquatone
+go install github.com/michenriksen/aquatone@latest
+go install github.com/projectdiscovery/httpx/cmd/httpx@latest
+go install github.com/hakluke/hakrawler@latest
 
-# Installing Python libraries from requirements.txt
-echo "Installing Python libraries from requirements.txt..."
-pip install -r requirements.txt
+mkdir -p ./MyTools
+cd MyTools
 
 # Installing SecretFinder
 echo "Installing SecretFinder..."
-git clone https://github.com/m4ll0k/SecretFinder.git ~/Downloads/secretfinder
-pip install -r ~/Downloads/secretfinder/requirements.txt
+git clone https://github.com/m4ll0k/SecretFinder.git
+cd SecretFinder
+pip install -r requirements.txt
+cd ..
+
+# Installing Waymore
+git clone https://github.com/xnl-h4ck3r/waymore.git
+cd waymore
+pip install -r requirements.txt
+cd ..
+
+# Installing Sublist3r
+git clone https://github.com/aboul3la/Sublist3r.git
+cd Sublist3r
+pip install -r requirements.txt
+cd ..
+
+# Installing Cloudrecon
+git clone https://github.com/0xSpidey/cloudrecon.git
+cd cloudrecon
+chmod +x main.sh
+cd ..
 
 # Ensuring all necessary Python libraries are installed
 echo "Ensuring additional Python libraries are installed..."
