@@ -1,8 +1,0 @@
-requests
-beautifulsoup4
-lxml
-urllib3
-html5lib
-selenium
-uro
-subprocess
