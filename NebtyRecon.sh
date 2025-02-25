@@ -25,10 +25,11 @@ SEARCH_PATTERN="${SEARCH_PATTERN//./\\.}"
 
 api_key="" # Change this 
 virustotal_url="https://www.virustotal.com/api/v3/domains/$TARGET/subdomains"
-XSL_PATH=$(find ~ /home /usr /etc -type f -name "nmap-bootstrap.xsl" 2>/dev/null | head -n 1)
-SECRET_FINDER_PATH=$(find ~ /home /usr /etc -type f -name "SecretFinder.py" 2>/dev/null | head -n 1)
-WAYMORE_PATH=$(find ~ /home /usr /etc -type f -name "waymore.py" 2>/dev/null | head -n 1)
-CLOUDRECON_PATH=$(find ~ /home /usr /etc -type f -path "*/cloudrecon/main.sh" 2>/dev/null | head -n 1)
+XSL_PATH=$(find ~ /home /usr /etc /root -type f -name "nmap-bootstrap.xsl" 2>/dev/null | head -n 1)
+SECRET_FINDER_PATH=$(find ~ /home /usr /etc /root -type f -name "SecretFinder.py" 2>/dev/null | head -n 1)
+WAYMORE_PATH=$(find ~ /home /usr /etc /root -type f -name "waymore.py" 2>/dev/null | head -n 1)
+CLOUDRECON_PATH=$(find ~ /home /usr /etc /root -type f -path "*/cloudrecon/main.sh" 2>/dev/null | head -n 1)
+AQUATONE_PATH=$(find ~ /home /usr /etc /root -type f -name "aquatone" 2>/dev/null | head -n 1)
 BASE_DIR="."
 TARGET_DIR="${BASE_DIR}/${TARGET}"
 OUTPUT_ALL="${TARGET_DIR}/subdomains/all_subdomains.txt"
@@ -324,12 +325,7 @@ run_nmap() {
 
 
 take_screenshots() {
-    if command -v aquatone &>/dev/null; then
-        echo "Делаем снимки доменов..."
-        cat "${OUTPUT_AVAILABLE}" | aquatone -out "${TARGET_DIR}/domain_screens/"
-    else
-        echo "Ошибка: Aquatone не установлен или недоступен."
-    fi
+    cat "${OUTPUT_AVAILABLE}" | "${AQUATONE_PATH}" -out "${TARGET_DIR}/domain_screens/"
 }
 
 find_open_redirects() {
