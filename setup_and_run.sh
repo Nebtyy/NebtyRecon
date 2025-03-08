@@ -25,8 +25,8 @@ echo 'export PATH=$PATH:$(go env GOPATH)/bin' >> ~/.profile
 echo "Installing Go utilities..."
 go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
 go install github.com/tomnomnom/assetfinder@latest
-go install -v github.com/OWASP/Amass/v3/...@latest
-go install github.com/lc/subzy@latest
+go install -v github.com/owasp-amass/amass/v4/...@master
+go install -v github.com/PentestPad/subzy@latest
 go install github.com/lc/gau@latest
 go install github.com/projectdiscovery/katana/cmd/katana@latest
 go install github.com/michenriksen/aquatone@latest
