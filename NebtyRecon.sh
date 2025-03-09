@@ -573,7 +573,7 @@ find_urls() {
     # Step 1: Получение URL с помощью waybackurls
     echo "Получение URL через waymore..."
     if command -v python &>/dev/null && [ -f "${WAYMORE_PATH}" ]; then
-        python "${WAYMORE_PATH}" -i "${TARGET}" -mode U -oU "${DOMAIN_OUT}" --config ../config.yml
+        python3 "${WAYMORE_PATH}" -i "${TARGET}" -mode U -oU "${DOMAIN_OUT}" --config ../config.yml
     else
     echo "Ошибка: Скрипт waymore не найден или не установлен Python."
     fi
