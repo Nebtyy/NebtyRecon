@@ -35,7 +35,7 @@ go install github.com/hakluke/hakrawler@latest
 
 mkdir -p ./MyTools
 cd MyTools
-
+wget https://raw.githubusercontent.com/Haxxnet/nmap-bootstrap-xsl/main/nmap-bootstrap.xsl
 # Installing Aquatone
 mkdir Aquatone
 cd Aquatone
