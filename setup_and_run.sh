@@ -3,7 +3,7 @@
 # Updating the system and installing the necessary utilities
 echo "Updating the system and installing the necessary utilities..."
 sudo apt-get update
-sudo apt-get install -y curl jq git python3 python3-pip wget linkchecker python3-venv xsltproc nmap dnsrecon
+sudo apt-get install -y curl jq git python3 python3-pip wget linkchecker python3-venv xsltproc nmap dnsrecon pipx sslscan
 
 # Install Go if it is not installed
 if ! command -v go &> /dev/null; then
@@ -32,6 +32,8 @@ go install github.com/projectdiscovery/katana/cmd/katana@latest
 go install github.com/michenriksen/aquatone@latest
 go install github.com/projectdiscovery/httpx/cmd/httpx@latest
 go install github.com/hakluke/hakrawler@latest
+
+pipx install uro
 
 mkdir -p ./MyTools
 cd MyTools
