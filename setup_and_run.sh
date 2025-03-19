@@ -8,8 +8,8 @@ sudo apt-get install -y curl jq git python3 python3-pip wget linkchecker python3
 # Install Go if it is not installed
 if ! command -v go &> /dev/null; then
     echo "Installing Go..."
-    wget https://dl.google.com/go/go1.20.2.linux-amd64.tar.gz
-    sudo tar -C /usr/local -xzf go1.20.2.linux-amd64.tar.gz
+    wget https://go.dev/dl/go1.24.1.linux-amd64.tar.gz
+    sudo tar -C /usr/local -xzf go1.24.1.linux-amd64.tar.gz
     export PATH=$PATH:/usr/local/go/bin
     echo 'export PATH=$PATH:/usr/local/go/bin' >> ~/.profile
     source ~/.profile
