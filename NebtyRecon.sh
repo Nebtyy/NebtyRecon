@@ -101,8 +101,8 @@ search_subdomains() {
     echo "Запуск поиска поддоменов для ${TARGET}..."
 
     # subfinder
-    #echo "subfinder"
-    #subfinder -recursive -d "${TARGET}" | sort -u >"${TARGET_DIR}/${TARGET}_subfinder.txt"
+    echo "subfinder"
+    subfinder -recursive -d "${TARGET}" | sort -u >"${TARGET_DIR}/${TARGET}_subfinder.txt"
 
     # sublist3r
     echo "sublist3r"
